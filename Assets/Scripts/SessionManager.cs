@@ -3,39 +3,43 @@ using Fusion.Sockets;
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Threading.Tasks;
 using UnityEngine;
+using UnityEngine.Events;
 using UnityEngine.Rendering;
 using UnityEngine.SceneManagement;
 
 namespace ISML
 {
-    public class SessionManager : MonoBehaviour, INetworkRunnerCallbacks
+    public class SessionManager : Singleton<SessionManager>, INetworkRunnerCallbacks
     {
+        public static UnityAction<NetworkRunner, PlayerRef> OnPlayerJoinedEvent;
+        public static UnityAction<NetworkRunner, PlayerRef> OnPlayerLeftEvent;
+        public static UnityAction<NetworkRunner, ShutdownReason> OnShutdownEvent;
+
+
         public const int MaxPlayers = 4;
 
         NetworkSceneManagerDefault sceneManager;
 
-        private void Awake()
+        List<UnityAction<NetworkRunner, PlayerRef>> onPlayerJoinedCallbacks = new List<UnityAction<NetworkRunner, PlayerRef>>();
+        List<UnityAction<NetworkRunner, ShutdownReason>> onShutdownCallbacks = new List<UnityAction<NetworkRunner, ShutdownReason>>();
+
+        bool shutdown = false;
+    
+        protected override void Awake()
         {
+            base.Awake();
             sceneManager = GetComponent<NetworkSceneManagerDefault>();
-        }
-
-        // Start is called before the first frame update
-        void Start()
-        {
-
-        }
-
-        // Update is called once per frame
-        void Update()
-        {
-
         }
 
 
         async void StartSession(StartGameArgs args)
         {
             NetworkRunner runner = GetComponent<NetworkRunner>();
+            if(!runner)
+                runner = gameObject.AddComponent<NetworkRunner>();
+                
 
             var result = await runner.StartGame(args);
 
@@ -67,7 +71,46 @@ namespace ISML
             StartSession(args);
         }
 
+        public void QuitSession()
+        {
+            var runner = GetComponent<NetworkRunner>();
+            runner.Shutdown(false);
+        }
 
+        public async void JoinSessionLobby()
+        {
+            NetworkRunner runner = GetComponent<NetworkRunner>();
+            if (!runner || shutdown)
+            {
+                if (shutdown)
+                {
+                    shutdown = false;
+                    DestroyImmediate(runner);
+                }
+
+                runner = gameObject.AddComponent<NetworkRunner>();
+            }
+                
+
+
+            var result = await runner.JoinSessionLobby(SessionLobby.Shared);
+
+            if (result.Ok)
+            {
+                Debug.Log($"Joined to session lobby");
+            }
+            else
+            {
+                Debug.Log("Join to session lobby failed");
+            }
+        }
+
+        public async Task LeaveSessionLobby()
+        {
+            await GetComponent<NetworkRunner>()?.Shutdown(false);
+        }
+
+        #region fusion callbacks
         public void OnConnectedToServer(NetworkRunner runner)
         {
             //throw new NotImplementedException();
@@ -76,95 +119,92 @@ namespace ISML
 
         public void OnConnectFailed(NetworkRunner runner, NetAddress remoteAddress, NetConnectFailedReason reason)
         {
-            throw new NotImplementedException();
         }
 
         public void OnConnectRequest(NetworkRunner runner, NetworkRunnerCallbackArgs.ConnectRequest request, byte[] token)
         {
-            throw new NotImplementedException();
         }
 
         public void OnCustomAuthenticationResponse(NetworkRunner runner, Dictionary<string, object> data)
         {
-            throw new NotImplementedException();
         }
 
         public void OnDisconnectedFromServer(NetworkRunner runner, NetDisconnectReason reason)
         {
-            throw new NotImplementedException();
         }
 
         public void OnHostMigration(NetworkRunner runner, HostMigrationToken hostMigrationToken)
         {
-            throw new NotImplementedException();
         }
 
         public void OnInput(NetworkRunner runner, NetworkInput input)
         {
-            throw new NotImplementedException();
         }
 
         public void OnInputMissing(NetworkRunner runner, PlayerRef player, NetworkInput input)
         {
-            throw new NotImplementedException();
         }
 
         public void OnObjectEnterAOI(NetworkRunner runner, NetworkObject obj, PlayerRef player)
         {
-            throw new NotImplementedException();
         }
 
         public void OnObjectExitAOI(NetworkRunner runner, NetworkObject obj, PlayerRef player)
         {
-            throw new NotImplementedException();
         }
 
         public void OnPlayerJoined(NetworkRunner runner, PlayerRef player)
         {
-            throw new NotImplementedException();
+            Debug.Log($"Player {player.PlayerId} joined the session {runner.SessionInfo.Name}");
+
+            OnPlayerJoinedEvent(runner, player);
         }
 
         public void OnPlayerLeft(NetworkRunner runner, PlayerRef player)
         {
-            throw new NotImplementedException();
+            Debug.Log($"Player {player.PlayerId} left the session {runner.SessionInfo.Name}");
+            OnPlayerLeftEvent(runner, player);
         }
 
         public void OnReliableDataProgress(NetworkRunner runner, PlayerRef player, ReliableKey key, float progress)
         {
-            throw new NotImplementedException();
+            
         }
 
         public void OnReliableDataReceived(NetworkRunner runner, PlayerRef player, ReliableKey key, ArraySegment<byte> data)
         {
-            throw new NotImplementedException();
+            
         }
 
         public void OnSceneLoadDone(NetworkRunner runner)
         {
-            throw new NotImplementedException();
+            
         }
 
         public void OnSceneLoadStart(NetworkRunner runner)
         {
-            throw new NotImplementedException();
+            
         }
 
         public void OnSessionListUpdated(NetworkRunner runner, List<SessionInfo> sessionList)
         {
-            throw new NotImplementedException();
+            
         }
 
         public void OnShutdown(NetworkRunner runner, ShutdownReason shutdownReason)
         {
-            throw new NotImplementedException();
+            shutdown = true;
+            Destroy(runner);
+            OnShutdownEvent(runner, shutdownReason);
+            
         }
 
         public void OnUserSimulationMessage(NetworkRunner runner, SimulationMessagePtr message)
         {
-            throw new NotImplementedException();
+            
         }
+        #endregion
 
-       
     }
 
 }
