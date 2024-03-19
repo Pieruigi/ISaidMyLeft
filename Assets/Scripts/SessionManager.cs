@@ -16,7 +16,9 @@ namespace ISML
         public static UnityAction<NetworkRunner, PlayerRef> OnPlayerJoinedEvent;
         public static UnityAction<NetworkRunner, PlayerRef> OnPlayerLeftEvent;
         public static UnityAction<NetworkRunner, ShutdownReason> OnShutdownEvent;
-
+        public static UnityAction OnJoinedToSessionLobbyEvent;
+        public static UnityAction OnJoinToSessionLobbyFailedEvent;
+        public static UnityAction OnStartSessionFailed;
 
         public const int MaxPlayers = 4;
 
@@ -50,6 +52,7 @@ namespace ISML
             else
             {
                 Debug.Log("Start session failed");
+                OnStartSessionFailed?.Invoke();
             }
         }
 
@@ -71,10 +74,15 @@ namespace ISML
             StartSession(args);
         }
 
-        public void QuitSession()
+        public void Shutdown()
         {
-            var runner = GetComponent<NetworkRunner>();
-            runner.Shutdown(false);
+            try
+            {
+                var runner = GetComponent<NetworkRunner>();
+                runner.Shutdown(false);
+            }
+            catch (Exception ex) { }
+            
         }
 
         public async void JoinSessionLobby()
@@ -90,26 +98,21 @@ namespace ISML
 
                 runner = gameObject.AddComponent<NetworkRunner>();
             }
-                
-
-
+          
             var result = await runner.JoinSessionLobby(SessionLobby.Shared);
 
             if (result.Ok)
             {
                 Debug.Log($"Joined to session lobby");
+                OnJoinedToSessionLobbyEvent?.Invoke();
             }
             else
             {
                 Debug.Log("Join to session lobby failed");
+                OnJoinToSessionLobbyFailedEvent?.Invoke();
             }
         }
-
-        public async Task LeaveSessionLobby()
-        {
-            await GetComponent<NetworkRunner>()?.Shutdown(false);
-        }
-
+            
         #region fusion callbacks
         public void OnConnectedToServer(NetworkRunner runner)
         {

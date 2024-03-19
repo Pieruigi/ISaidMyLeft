@@ -22,7 +22,6 @@ namespace ISML.UI
 
         private void OnEnable()
         {
-            //SessionManager.Instance?.LeaveSessionLobby();
             ShowMainPanel();
         }
 
