@@ -15,11 +15,14 @@ namespace ISML.UI
         [SerializeField]
         Button buttonBack;
 
+        [SerializeField]
+        SessionList sessionList;
 
         private void OnEnable()
         {
             // Disable buttons
             SetInteractableAll(false);
+                        
             SessionManager.OnPlayerJoinedEvent += HandleOnPlayerJoined;
             SessionManager.OnShutdownEvent += HandleOnShutdown;
             SessionManager.OnJoinedToSessionLobbyEvent += HandleOnJoinedToSessionLobby;
@@ -76,6 +79,7 @@ namespace ISML.UI
         {
             buttonCreate.interactable = value;
             buttonBack.interactable = value;
+            sessionList.SetInteractable(value);
         }
 
         public void CreateGameSession()

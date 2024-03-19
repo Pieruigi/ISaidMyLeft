@@ -19,6 +19,7 @@ namespace ISML
         public static UnityAction OnJoinedToSessionLobbyEvent;
         public static UnityAction OnJoinToSessionLobbyFailedEvent;
         public static UnityAction OnStartSessionFailed;
+        public static UnityAction<NetworkRunner, List<SessionInfo>> OnSessionListUpdatedEvent;
 
         public const int MaxPlayers = 4;
 
@@ -69,6 +70,7 @@ namespace ISML
                 SceneManager = sceneManager,
                 DisableNATPunchthrough = true,
                 IsVisible = !isPrivate
+
             };
 
             StartSession(args);
@@ -191,7 +193,8 @@ namespace ISML
 
         public void OnSessionListUpdated(NetworkRunner runner, List<SessionInfo> sessionList)
         {
-            
+            Debug.Log($"Session list updated, session count: {sessionList.Count}");
+            OnSessionListUpdatedEvent?.Invoke(runner, sessionList);
         }
 
         public void OnShutdown(NetworkRunner runner, ShutdownReason shutdownReason)
