@@ -28,6 +28,7 @@ namespace ISML.UI
         public void JoinSession()
         {
             Debug.Log($"Join session {sessionInfo.Name}");
+            SessionManager.Instance.JoinSession(sessionInfo);
         }
 
         public void SetInteractable(bool value)

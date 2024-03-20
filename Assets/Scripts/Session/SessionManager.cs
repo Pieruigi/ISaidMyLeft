@@ -65,11 +65,26 @@ namespace ISML
 
                 GameMode = GameMode.Shared,
                 //SessionName = "",
-                MatchmakingMode = Fusion.Photon.Realtime.MatchmakingMode.FillRoom,
+                //MatchmakingMode = Fusion.Photon.Realtime.MatchmakingMode.FillRoom,
                 PlayerCount = MaxPlayers,
                 SceneManager = sceneManager,
                 DisableNATPunchthrough = true,
                 IsVisible = !isPrivate
+
+            };
+
+            StartSession(args);
+        }
+
+        public void JoinSession(SessionInfo sessionInfo)
+        {
+            StartGameArgs args = new StartGameArgs()
+            {
+
+                GameMode = GameMode.Shared,
+                SessionName = sessionInfo.Name
+                
+                
 
             };
 

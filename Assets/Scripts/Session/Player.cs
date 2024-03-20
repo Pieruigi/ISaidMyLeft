@@ -2,30 +2,48 @@ using Fusion;
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using Unity.PlasticSCM.Editor.WebApi;
 using UnityEngine;
+using UnityEngine.Events;
 using UnityEngine.Experimental.Rendering.RenderGraphModule;
 
 namespace ISML
 {
     public class Player: NetworkBehaviour
     {
-
+        public static UnityAction<Player> OnPlayerSpawned;
+        public static UnityAction<Player> OnPlayerDespawned;
 
         [UnitySerializeField]
         [Networked] 
-        public NetworkString<_16> Name {  get; private set; }
+        public NetworkString<_16> Name {  get; set; }
+
+        [UnitySerializeField]
+        [Networked]
+        public NetworkBool HelperOnly { get; set; }
+
+        [UnitySerializeField]
+        [Networked]
+        public NetworkBool Ready { get; set; }
 
         ChangeDetector changeDetector;
-
+        
 
         private void Update()
         {
-            foreach(var propertyName in changeDetector.DetectChanges(this, out var previous, out var current))
+            foreach (var propertyName in changeDetector.DetectChanges(this, out var previousBuffer, out var currentBuffer))
             {
-                switch(propertyName)
+                switch (propertyName)
                 {
-                    case nameof(Name):
-                        Debug.Log($"Player - Name changed from {previous} to {current}");
+                    //case nameof(Name):
+                    //    var nameReader = GetPropertyReader<NetworkString<_16>>(propertyName);
+                    //    var (namePrev, nameCurr) = nameReader.Read(previousBuffer, currentBuffer);
+                    //    Debug.Log($"Player - Name changed from {namePrev} to {nameCurr}");
+                    //    break;
+                    case nameof(Ready):
+                        var readyReader = GetPropertyReader<NetworkBool>(propertyName);
+                        var (readyPrev, readyCurr) = readyReader.Read(previousBuffer, currentBuffer);
+                        Debug.Log($"Player - Ready changed from {readyPrev} to {readyCurr}");
                         break;
                 }
             }
@@ -34,17 +52,20 @@ namespace ISML
         public override void Spawned()
         {
             base.Spawned();
-
-            if (HasInputAuthority)
-            {
-                Name = AccountManager.Instance.UserName;
-            }
-
+            
             changeDetector = GetChangeDetector(ChangeDetector.Source.SimulationState);
+
+            OnPlayerSpawned?.Invoke(this);
             
         }
 
-        
+        public override void Despawned(NetworkRunner runner, bool hasState)
+        {
+            base.Despawned(runner, hasState);
+
+            OnPlayerDespawned?.Invoke(this);
+        }
+
     }
 
 }

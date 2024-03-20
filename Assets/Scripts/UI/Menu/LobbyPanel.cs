@@ -31,6 +31,11 @@ namespace ISML.UI
         {
             
         }
+
+        public void SetReady(bool value)
+        {
+            PlayerManager.Instance.LocalPlayer.Ready = value;
+        }
     }
 
 }
