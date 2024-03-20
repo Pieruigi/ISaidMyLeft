@@ -4,6 +4,7 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Threading.Tasks;
+using Unity.VisualScripting;
 using UnityEngine;
 using UnityEngine.Events;
 using UnityEngine.Rendering;
@@ -11,7 +12,7 @@ using UnityEngine.SceneManagement;
 
 namespace ISML
 {
-    public class SessionManager : Singleton<SessionManager>, INetworkRunnerCallbacks
+    public class SessionManager : SingletonPersistent<SessionManager>, INetworkRunnerCallbacks
     {
         public static UnityAction<NetworkRunner, PlayerRef> OnPlayerJoinedEvent;
         public static UnityAction<NetworkRunner, PlayerRef> OnPlayerLeftEvent;
@@ -23,12 +24,18 @@ namespace ISML
 
         public const int MaxPlayers = 4;
 
+
         NetworkSceneManagerDefault sceneManager;
 
         List<UnityAction<NetworkRunner, PlayerRef>> onPlayerJoinedCallbacks = new List<UnityAction<NetworkRunner, PlayerRef>>();
         List<UnityAction<NetworkRunner, ShutdownReason>> onShutdownCallbacks = new List<UnityAction<NetworkRunner, ShutdownReason>>();
 
         bool shutdown = false;
+        NetworkRunner networkRunner;
+        public NetworkRunner NetworkRunner
+        {
+            get { if (!networkRunner) networkRunner = GetComponent<NetworkRunner>(); return networkRunner; }
+        }
     
         protected override void Awake()
         {
@@ -36,6 +43,27 @@ namespace ISML
             sceneManager = GetComponent<NetworkSceneManagerDefault>();
         }
 
+        void Update()
+        {
+            if(NetworkRunner == null || !NetworkRunner.IsSceneAuthority || NetworkRunner.SessionInfo == null || PlayerManager.Instance.Players.Count < 2) return;
+
+            if (NetworkRunner.SessionInfo.IsOpen) // Game not started yet
+            {
+                foreach(var player in PlayerManager.Instance.Players)
+                {
+                    if (!player.Ready)
+                        return;
+                }
+
+                // Start game
+                NetworkRunner.SessionInfo.IsOpen = false;
+                
+                
+                NetworkRunner.LoadScene(SceneRef.FromIndex(1), LoadSceneMode.Single);
+            }
+        }
+
+        
 
         async void StartSession(StartGameArgs args)
         {
@@ -64,8 +92,9 @@ namespace ISML
             {
 
                 GameMode = GameMode.Shared,
-                //SessionName = "",
-                //MatchmakingMode = Fusion.Photon.Realtime.MatchmakingMode.FillRoom,
+                SessionName = $"{AccountManager.Instance.UserName}_{Guid.NewGuid()}",
+                //MatchmakingMode = Fusion.Photon.Realtime.MatchmakingMode.,
+                
                 PlayerCount = MaxPlayers,
                 SceneManager = sceneManager,
                 DisableNATPunchthrough = true,
@@ -83,8 +112,7 @@ namespace ISML
 
                 GameMode = GameMode.Shared,
                 SessionName = sessionInfo.Name
-                
-                
+                             
 
             };
 
@@ -199,6 +227,9 @@ namespace ISML
         public void OnSceneLoadDone(NetworkRunner runner)
         {
             
+                
+
+
         }
 
         public void OnSceneLoadStart(NetworkRunner runner)
@@ -215,8 +246,9 @@ namespace ISML
         public void OnShutdown(NetworkRunner runner, ShutdownReason shutdownReason)
         {
             shutdown = true;
+            
             Destroy(runner);
-            OnShutdownEvent(runner, shutdownReason);
+            OnShutdownEvent?.Invoke(runner, shutdownReason);
             
         }
 

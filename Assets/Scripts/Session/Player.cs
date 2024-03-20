@@ -11,9 +11,7 @@ namespace ISML
 {
     public class Player: NetworkBehaviour
     {
-        public static UnityAction<Player> OnPlayerSpawned;
-        public static UnityAction<Player> OnPlayerDespawned;
-
+        
         [UnitySerializeField]
         [Networked] 
         public NetworkString<_16> Name {  get; set; }
@@ -26,8 +24,20 @@ namespace ISML
         [Networked]
         public NetworkBool Ready { get; set; }
 
+        [UnitySerializeField]
+        [Networked]
+        public NetworkBool IsCharacter { get; set; }
+
+        [UnitySerializeField]
+        [Networked]
+        public NetworkBool InGame { get; set; }
+
         ChangeDetector changeDetector;
-        
+
+        private void Awake()
+        {
+            DontDestroyOnLoad(this);
+        }
 
         private void Update()
         {
@@ -54,16 +64,15 @@ namespace ISML
             base.Spawned();
             
             changeDetector = GetChangeDetector(ChangeDetector.Source.SimulationState);
-
-            OnPlayerSpawned?.Invoke(this);
-            
+            PlayerManager.Instance.AddPlayer(this);
         }
 
         public override void Despawned(NetworkRunner runner, bool hasState)
         {
-            base.Despawned(runner, hasState);
 
-            OnPlayerDespawned?.Invoke(this);
+            base.Despawned(runner, hasState);
+           
+            PlayerManager.Instance.RemovePlayer(this);
         }
 
     }

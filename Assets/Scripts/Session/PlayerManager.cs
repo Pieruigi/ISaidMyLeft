@@ -3,23 +3,32 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.Events;
+using UnityEngine.SceneManagement;
 
 namespace ISML
 {
     public class PlayerManager : SingletonPersistent<PlayerManager>
     {
+        public static UnityAction<Player> OnPlayerAdded;
+        public static UnityAction<Player> OnPlayerRemoved;
+
         [SerializeField]
         GameObject playerPrefab;
 
         public Player LocalPlayer { get; private set; }
 
         List<Player> players = new List<Player>();
+        public ICollection<Player> Players
+        {
+            get { return players.AsReadOnly(); }
+        }
 
         private void OnEnable()
         {
             SessionManager.OnPlayerJoinedEvent += HandleOnPlayerJoined;
-            Player.OnPlayerSpawned += HandleOnPlayerSpawned;
-            Player.OnPlayerDespawned += HandleOnPlayerDespawned;
+            SceneManager.sceneLoaded += HandleOnSceneLoaded;
+            
         }
 
        
@@ -27,8 +36,16 @@ namespace ISML
         private void OnDisable()
         {
             SessionManager.OnPlayerJoinedEvent -= HandleOnPlayerJoined;
-            Player.OnPlayerSpawned -= HandleOnPlayerSpawned;
-            Player.OnPlayerDespawned -= HandleOnPlayerDespawned;
+            SceneManager.sceneLoaded -= HandleOnSceneLoaded;
+
+        }
+
+        private void HandleOnSceneLoaded(Scene scene, LoadSceneMode mode)
+        {
+            if (SceneManager.GetActiveScene().buildIndex != 0)
+            {
+                LocalPlayer.InGame = true;
+            }
         }
 
         private void HandleOnPlayerJoined(NetworkRunner runner, PlayerRef playerRef)
@@ -41,10 +58,23 @@ namespace ISML
                         Player player = o.GetComponent<Player>();
                         player.Name = AccountManager.Instance.UserName;
                         player.HelperOnly = false;
+                        player.InGame = false;
+                        player.IsCharacter = runner.IsSharedModeMasterClient ? true : false;
                     });
         }
 
-        private void HandleOnPlayerDespawned(Player player)
+    
+
+        public void AddPlayer(Player player)
+        {
+            players.Add(player);
+            if (player.HasStateAuthority)
+                LocalPlayer = player;
+
+            OnPlayerAdded?.Invoke(player);
+        }
+
+        public void RemovePlayer(Player player)
         {
             if (player.HasStateAuthority)
             {
@@ -55,14 +85,8 @@ namespace ISML
             {
                 players.Remove(player);
             }
-            
-        }
 
-        private void HandleOnPlayerSpawned(Player player)
-        {
-            players.Add(player);
-            if(player.HasStateAuthority)
-                LocalPlayer = player;
+            OnPlayerRemoved?.Invoke(player);
         }
     }
 
