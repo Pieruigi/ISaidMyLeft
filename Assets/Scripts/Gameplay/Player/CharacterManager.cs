@@ -25,6 +25,7 @@ namespace ISML
 
         private void HandleOnSceneLoaded(Scene scene, LoadSceneMode mode)
         {
+            Debug.Log($"Spawning character....:{scene.buildIndex}");
             if(scene.buildIndex > 0)
             {
                 if (PlayerManager.Instance.LocalPlayer.Runner.IsSharedModeMasterClient && !Character)

@@ -30,6 +30,7 @@ namespace ISML
         List<UnityAction<NetworkRunner, PlayerRef>> onPlayerJoinedCallbacks = new List<UnityAction<NetworkRunner, PlayerRef>>();
         List<UnityAction<NetworkRunner, ShutdownReason>> onShutdownCallbacks = new List<UnityAction<NetworkRunner, ShutdownReason>>();
 
+        bool loading = false;
         bool shutdown = false;
         NetworkRunner networkRunner;
         public NetworkRunner NetworkRunner
@@ -45,9 +46,9 @@ namespace ISML
 
         void Update()
         {
-            if(NetworkRunner == null || !NetworkRunner.IsSceneAuthority || NetworkRunner.SessionInfo == null || PlayerManager.Instance.Players.Count < 2) return;
+            if(NetworkRunner == null || !NetworkRunner.IsSceneAuthority || NetworkRunner.SessionInfo == null || PlayerManager.Instance.Players.Count < 1) return;
 
-            if (NetworkRunner.SessionInfo.IsOpen) // Game not started yet
+            if (!loading) // Game not started yet
             {
                 foreach(var player in PlayerManager.Instance.Players)
                 {
@@ -57,16 +58,18 @@ namespace ISML
 
                 // Start game
                 NetworkRunner.SessionInfo.IsOpen = false;
-                
-                
+                loading = true;
+                Debug.Log("Loading game scene");
                 NetworkRunner.LoadScene(SceneRef.FromIndex(1), LoadSceneMode.Single);
             }
         }
 
-        
+       
 
         async void StartSession(StartGameArgs args)
         {
+            loading = false;
+
             NetworkRunner runner = GetComponent<NetworkRunner>();
             if(!runner)
                 runner = gameObject.AddComponent<NetworkRunner>();
