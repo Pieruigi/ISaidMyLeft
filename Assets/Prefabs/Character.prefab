@@ -280,7 +280,7 @@ CharacterController:
   m_StepOffset: 0.3
   m_SkinWidth: 0.08
   m_MinMoveDistance: 0.001
-  m_Center: {x: 0, y: 0, z: 0}
+  m_Center: {x: 0, y: 1, z: 0}
 --- !u!114 &5807211386808129063
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -314,11 +314,12 @@ MonoBehaviour:
   runSpeed: 5
   walkSpeed: 2
   crouchSpeed: 1.5
+  jumpSpeed: 3
   acceleration: 20
   deceleration: 20
   maxPitch: 50
   minPitch: -80
-  mouseSensitivity: 1
+  mouseSensitivity: 100
   crouchHeight: 1
   cameraRoot: {fileID: 2979240798362772394}
 --- !u!1 &9159899972077372713

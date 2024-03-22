@@ -21,6 +21,12 @@ namespace ISML
         float crouchSpeed = 1.5f;
 
         [SerializeField]
+        float jumpSpeed = 3f;
+
+        [SerializeField]
+        float rotationSpeed = 360f;
+
+        [SerializeField]
         float acceleration = 10;
 
         [SerializeField]
@@ -48,6 +54,8 @@ namespace ISML
         Vector2 aimInput = Vector2.zero;
         bool crouchInput = false;
         bool walkInput = false;
+        bool jumpInput = false;
+        bool jumping = false;
 
         float pitch = 0;
         float yaw = 0;
@@ -95,6 +103,11 @@ namespace ISML
 
         }
 
+        private void LateUpdate()
+        {
+            LateUpdateState();
+        }
+
         void UpdateState()
         {
             switch (state)
@@ -109,7 +122,7 @@ namespace ISML
         {
             CheckInput();
 
-            
+            SetPitchAndJaw();
 
             //UpdateStamina();
         }
@@ -118,12 +131,37 @@ namespace ISML
         {
             base.FixedUpdateNetwork();
 
-            Rotate();
+            switch (state)
+            {
+                case PlayerState.Normal:
+                    FixedUpdateNetworkNormalState();
+                    break;
+            }
+
+        }
+
+        void LateUpdateState()
+        {
+            switch (state)
+            {
+                case PlayerState.Normal:
+                    LateUpdateNormalState();
+                    break;
+            }
+        }
+
+        void LateUpdateNormalState()
+        {
+            Pitch();
+        }
+
+        void FixedUpdateNetworkNormalState()
+        {
+            Yaw();
 
             Crouch();
 
             Move();
-
         }
 
         public override void Spawned()
@@ -142,16 +180,28 @@ namespace ISML
         {
             moveInput = new Vector2(Input.GetAxisRaw("Horizontal"), Input.GetAxisRaw("Vertical"));
             aimInput = new Vector2(Input.GetAxis("Mouse X"), Input.GetAxis("Mouse Y"));
-            crouchInput = Input.GetAxis("Fire1") > 0;
-            walkInput = !crouchInput && Input.GetAxis("Fire3") > 0;
+            crouchInput = Input.GetAxis("Crouch") > 0;
+            walkInput = !crouchInput && Input.GetAxis("Walk") > 0;
+            jumpInput = !jumping && !crouchInput && Input.GetAxis("Jump") > 0;
         }
 
-        void Rotate()
+        void SetPitchAndJaw()
         {
-            yaw += aimInput.x * mouseSensitivity;
-            pitch += -aimInput.y * mouseSensitivity;
+            yaw += aimInput.x * mouseSensitivity * Time.deltaTime;
+            pitch += -aimInput.y * mouseSensitivity * Time.deltaTime;
             pitch = Mathf.Clamp(pitch, minPitch, maxPitch);
+        }
+
+        void Yaw()
+        {
+            //characterController.transform.rotation = Quaternion.Lerp(characterController.transform.rotation, Quaternion.Euler(0f, yaw, 0f), Time.fixedDeltaTime);
+            //playerCamera.transform.localRotation = Quaternion.Lerp(playerCamera.transform.localRotation, Quaternion.Euler(pitch, 0f, 0f), Time.fixedDeltaTime);
             characterController.transform.rotation = Quaternion.Euler(0f, yaw, 0f);
+            //playerCamera.transform.localRotation = Quaternion.Euler(pitch, 0f, 0f);
+        }
+
+        void Pitch()
+        {
             playerCamera.transform.localRotation = Quaternion.Euler(pitch, 0f, 0f);
         }
 
@@ -201,6 +251,7 @@ namespace ISML
             }
         }
 
+        
         void Move()
         {
 
@@ -245,25 +296,30 @@ namespace ISML
             // 
             // Apply gravity
             //
-            if (!IsGrounded())
+            if(!characterController.isGrounded)
             {
-                RaycastHit hit;
-                float disp = .2f;
-                if (Physics.Raycast(transform.position + Vector3.up * characterController.skinWidth, Vector3.down, disp, LayerMask.GetMask(new string[] { "Floor" })))
-                {
-                    vVel = 0;
-                    characterController.Move(Vector3.down * disp);
-                }
-                else
-                {
-                    vVel += Physics.gravity.y * Time.fixedDeltaTime;
-                }
-
+                
+                vVel += Physics.gravity.y * Time.fixedDeltaTime;
+                
+                jumping = false;
 
             }
             else
             {
-                vVel = 0;
+                // Check for jump
+                if (jumpInput)
+                {
+                    if (!jumping)
+                    {
+                        jumping = true;
+                        vVel = jumpSpeed;
+                    }
+                }
+                else
+                {
+                    vVel = 0;
+                }
+                
             }
 
 
@@ -292,10 +348,6 @@ namespace ISML
             return runSpeed;
         }
 
-        bool IsGrounded()
-        {
-            return Physics.OverlapSphere(transform.position + Vector3.up * (characterController.radius - characterController.skinWidth), characterController.radius, LayerMask.GetMask(new string[] { "Floor" })).Length > 0;
-        }
     }
 
 }
