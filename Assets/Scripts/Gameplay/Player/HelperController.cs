@@ -32,7 +32,7 @@ namespace ISML
         [SerializeField]
         float rotationAcceleration = 100f;
 
-
+        float borderSize;
 
         [SerializeField]
         float cameraHeight = 20;
@@ -52,6 +52,11 @@ namespace ISML
         Vector3 velocity;
         float rotationSpeed;
         float yaw = 0;
+
+        private void Start()
+        {
+            borderSize = Screen.width / 6f;
+        }
 
         private void Update()
         {
@@ -83,12 +88,45 @@ namespace ISML
             yawInput += Input.GetKey(KeyCode.Q) ? 1 : 0;
             yawInput += Input.GetKey(KeyCode.E) ? -1 : 0;
 
+            
+
+            // Keyboard
             zoomInput = 0;
             zoomInput += Input.GetKey(KeyCode.Z) ? -1 : 0;
             zoomInput += Input.GetKey(KeyCode.X) ? 1 : 0;
 
-            moveInput = new Vector3(Input.GetAxisRaw("Horizontal"), 0f, Input.GetAxisRaw("Vertical"));
+            // Mouse wheel
+            if(zoomInput == 0)
+                zoomInput = Input.mouseScrollDelta.y * 10;
 
+            moveInput = new Vector3(Input.GetAxisRaw("Horizontal"), 0f, Input.GetAxisRaw("Vertical"));
+            if(moveInput == Vector3.zero && !Input.GetMouseButton(0) && !Input.GetMouseButtonDown(1))
+            {
+                if(MouseOnTheLeft() || MouseOnTheRight())
+                    moveInput.x = MouseOnTheLeft() ? -1 : 1;
+                if (MouseOnTheTop() || MouseOnTheBottom())
+                    moveInput.z = MouseOnTheBottom() ? -1 : 1;
+            }
+        }
+
+        bool MouseOnTheLeft()
+        {
+            return Input.mousePosition.x < borderSize;
+        }
+
+        bool MouseOnTheRight()
+        {
+            return Input.mousePosition.x > Screen.width - borderSize;
+        }
+
+        bool MouseOnTheBottom()
+        {
+            return Input.mousePosition.y < borderSize;
+        }
+
+        bool MouseOnTheTop()
+        {
+            return Input.mousePosition.y > Screen.height - borderSize;
         }
 
         void Zoom()

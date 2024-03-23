@@ -1,5 +1,6 @@
 using System.Collections;
 using System.Collections.Generic;
+using Unity.VisualScripting;
 using UnityEngine;
 
 namespace ISML.UI
@@ -16,6 +17,11 @@ namespace ISML.UI
         GameObject lobbyPanel;
 
         private void Awake()
+        {
+            
+        }
+
+        private void Update()
         {
             
         }

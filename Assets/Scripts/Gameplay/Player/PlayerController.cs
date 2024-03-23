@@ -284,85 +284,51 @@ namespace ISML
             }
         }
 
-        
         void Move()
         {
+            Vector3 hVel = Vector3.ProjectOnPlane(velocity, Vector3.up);
+            Vector3 vVel = Vector3.up * velocity.y;
 
-            Vector3 hVel = velocity;
-            hVel.y = 0;
-            float vVel = velocity.y;
-            float speed = hVel.magnitude;
-
-            Vector3 targetDirection = Vector3.zero;
-            if (moveInput.magnitude > 0)
+            Vector3 targetHVel = (transform.forward * moveInput.y + transform.right * moveInput.x).normalized;
+            if(moveInput.magnitude > 0)
             {
                 float hMaxSpeed = GetMoveSpeed();
-
-                speed += Time.deltaTime * acceleration;
-                if (speed > hMaxSpeed)
-                    speed = hMaxSpeed;
-
-                //if (!sprintInput)
-                targetDirection = (transform.forward * moveInput.y + transform.right * moveInput.x).normalized;
-                //else
-                //targetDirection = transform.forward;
+                targetHVel *= hMaxSpeed;
+                if(hVel.magnitude > 0 && Vector3.Dot(hVel, targetHVel) < 0)
+                    targetHVel = Vector3.zero;
             }
-            else
+            
+            hVel = Vector3.MoveTowards(hVel, targetHVel, acceleration * Time.fixedDeltaTime);
+
+            if (!characterController.isGrounded)
             {
-                // Keep the last direction while decelerating
-                if (speed > 0)
-                {
-                    targetDirection = velocity;
-                    targetDirection.y = 0;
-                    targetDirection.Normalize();
-
-                    speed -= Time.deltaTime * deceleration;
-                    if (speed < 0)
-                        speed = 0;
-                }
-
-            }
-
-            hVel = targetDirection * speed;
-
-
-            // 
-            // Apply gravity
-            //
-            if(!characterController.isGrounded)
-            {
-                
-                vVel += Physics.gravity.y * Time.fixedDeltaTime;
-                
+                vVel += Physics.gravity.y * Vector3.up * Time.fixedDeltaTime;
                 jumping = false;
-
             }
             else
             {
-                // Check for jump
                 if (jumpInput)
                 {
                     if (!jumping)
                     {
                         jumping = true;
-                        vVel = jumpSpeed;
+                        vVel = jumpSpeed * Vector3.up;
                     }
+                    
                 }
                 else
                 {
-                    vVel = 0;
+                    vVel = Vector3.zero;
                 }
                 
             }
 
+            velocity = hVel + vVel;
+            characterController.Move(velocity*Time.fixedDeltaTime);
 
-            // 
-            // Move character
-            //
-            velocity = hVel + Vector3.up * vVel;
-
-            characterController.Move(velocity * Time.fixedDeltaTime);
         }
+        
+       
 
         float GetMoveSpeed()
         {
@@ -375,8 +341,6 @@ namespace ISML
             if (crouchInput)
                 return crouchSpeed;
 
-            //if (sprintInput)
-            //    return sprintSpeed;
 
             return runSpeed;
         }
