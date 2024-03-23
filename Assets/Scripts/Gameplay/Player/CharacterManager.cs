@@ -33,6 +33,7 @@ namespace ISML
             }
             else
             {
+                
                 Character = null;
             }
             

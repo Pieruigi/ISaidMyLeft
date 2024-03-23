@@ -2,6 +2,7 @@ using Fusion;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.Events;
 
 namespace ISML
 {
@@ -9,6 +10,8 @@ namespace ISML
 
     public class PlayerController : NetworkBehaviour
     {
+        public static UnityAction OnSpawned;
+
         public static PlayerController Instance { get; private set; }
 
         [SerializeField]
@@ -56,6 +59,7 @@ namespace ISML
         bool walkInput = false;
         bool jumpInput = false;
         bool jumping = false;
+        bool crouching = false;
 
         float pitch = 0;
         float yaw = 0;
@@ -63,6 +67,9 @@ namespace ISML
         float characterDefaultHeight;
         float cameraDefaultHeight;
         float cameraCrouchHeight;
+
+        Animator animator;
+        string crouchAnimParam = "Crouch";
 
         PlayerState state;
         public PlayerState State
@@ -75,9 +82,9 @@ namespace ISML
             if(!Instance)
             {
                 Instance = this;
-                Instance = this;
                 characterController = GetComponent<CharacterController>();
-             
+                animator = GetComponent<Animator>();
+
                 characterDefaultHeight = characterController.height;
                 cameraDefaultHeight = cameraRoot.localPosition.y;
                 float crouchMul = crouchHeight / characterDefaultHeight;
@@ -88,24 +95,45 @@ namespace ISML
                 Destroy(Instance);
             }
         }
-
-        // Start is called before the first frame update
-        void Start()
-        {
-            
-            
-        }
-
+               
         // Update is called once per frame
         void Update()
         {
             UpdateState();
-
         }
 
         private void LateUpdate()
         {
             LateUpdateState();
+        }
+
+        public override void FixedUpdateNetwork()
+        {
+            base.FixedUpdateNetwork();
+
+            FixedUpdateNetworkState();
+
+        }
+
+        public override void Spawned()
+        {
+            base.Spawned();
+
+            // Move the scene camera under the player who has state authority
+            if (HasStateAuthority)
+            {
+                GetControl();
+            }
+            
+            OnSpawned?.Invoke();
+        }
+
+        void GetControl()
+        {
+            playerCamera = Camera.main;
+            playerCamera.transform.parent = cameraRoot;
+            playerCamera.transform.localPosition = Vector3.zero;
+            playerCamera.transform.localRotation = Quaternion.identity;
         }
 
         void UpdateState()
@@ -118,27 +146,6 @@ namespace ISML
             }
         }
 
-        void UpdateNormalState()
-        {
-            CheckInput();
-
-            SetPitchAndJaw();
-
-            //UpdateStamina();
-        }
-
-        public override void FixedUpdateNetwork()
-        {
-            base.FixedUpdateNetwork();
-
-            switch (state)
-            {
-                case PlayerState.Normal:
-                    FixedUpdateNetworkNormalState();
-                    break;
-            }
-
-        }
 
         void LateUpdateState()
         {
@@ -150,13 +157,29 @@ namespace ISML
             }
         }
 
+        void FixedUpdateNetworkState()
+        {
+            switch (state)
+            {
+                case PlayerState.Normal:
+                    FixedUpdateNetworkNormalState();
+                    break;
+            }
+        }
+
         void LateUpdateNormalState()
         {
+            if (!HasStateAuthority)
+                return;
+
             Pitch();
         }
 
         void FixedUpdateNetworkNormalState()
         {
+            if (!HasStateAuthority)
+                return;
+
             Yaw();
 
             Crouch();
@@ -164,18 +187,19 @@ namespace ISML
             Move();
         }
 
-        public override void Spawned()
+        void UpdateNormalState()
         {
-            base.Spawned();
+            if (!HasStateAuthority)
+                return;
 
-            // Move the scene camera under the player
-            playerCamera = Camera.main;
-            playerCamera.transform.parent = cameraRoot;
-            playerCamera.transform.localPosition = Vector3.zero;
-            playerCamera.transform.localRotation = Quaternion.identity;
-            
+            CheckInput();
+
+            SetPitchAndJaw();
+
+            UpdateAnimations();
         }
 
+        
         private void CheckInput()
         {
             moveInput = new Vector2(Input.GetAxisRaw("Horizontal"), Input.GetAxisRaw("Vertical"));
@@ -183,6 +207,13 @@ namespace ISML
             crouchInput = Input.GetAxis("Crouch") > 0;
             walkInput = !crouchInput && Input.GetAxis("Walk") > 0;
             jumpInput = !jumping && !crouchInput && Input.GetAxis("Jump") > 0;
+        }
+
+        void UpdateAnimations()
+        {
+            if(animator.GetBool(crouchAnimParam) != crouching)
+                animator.SetBool(crouchAnimParam, crouching);
+
         }
 
         void SetPitchAndJaw()
@@ -209,6 +240,8 @@ namespace ISML
         {
             if (crouchInput)
             {
+                crouching = true;
+
                 float cSpeed = 2;
                 if (characterController.height > crouchHeight)
                 {
@@ -225,11 +258,11 @@ namespace ISML
                     cameraRoot.localPosition = pos;
                 }
 
-
-
             }
             else
             {
+                crouching = false;
+
                 float cSpeed = 2;
                 if (characterController.height < characterDefaultHeight)
                 {

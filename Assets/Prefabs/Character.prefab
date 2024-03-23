@@ -212,6 +212,8 @@ GameObject:
   - component: {fileID: 7864346070118941441}
   - component: {fileID: 5807211386808129063}
   - component: {fileID: -2954004745092573573}
+  - component: {fileID: -1360510797957260577}
+  - component: {fileID: 613966397245247522}
   m_Layer: 0
   m_Name: Character
   m_TagString: Player
@@ -255,6 +257,7 @@ MonoBehaviour:
   NetworkedBehaviours:
   - {fileID: 5807211386808129063}
   - {fileID: -2954004745092573573}
+  - {fileID: 613966397245247522}
 --- !u!143 &7864346070118941441
 CharacterController:
   m_ObjectHideFlags: 0
@@ -315,6 +318,7 @@ MonoBehaviour:
   walkSpeed: 2
   crouchSpeed: 1.5
   jumpSpeed: 3
+  rotationSpeed: 360
   acceleration: 20
   deceleration: 20
   maxPitch: 50
@@ -322,6 +326,45 @@ MonoBehaviour:
   mouseSensitivity: 100
   crouchHeight: 1
   cameraRoot: {fileID: 2979240798362772394}
+--- !u!95 &-1360510797957260577
+Animator:
+  serializedVersion: 5
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 7074703032929593020}
+  m_Enabled: 1
+  m_Avatar: {fileID: 0}
+  m_Controller: {fileID: 9100000, guid: cbb4fd82cd672444ebf2087a23a6e257, type: 2}
+  m_CullingMode: 0
+  m_UpdateMode: 0
+  m_ApplyRootMotion: 0
+  m_LinearVelocityBlending: 0
+  m_StabilizeFeet: 0
+  m_WarningMessage: 
+  m_HasTransformHierarchy: 1
+  m_AllowConstantClipSamplingOptimization: 1
+  m_KeepAnimatorStateOnDisable: 0
+  m_WriteDefaultValuesOnDisable: 0
+--- !u!114 &613966397245247522
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 7074703032929593020}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 506319458, guid: e725a070cec140c4caffb81624c8c787, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  Animator: {fileID: -1360510797957260577}
+  TotalWords: 1
+  ApplyTiming: 2
+  SyncSettings: 79
+  StateHashes: 000000002b1a167c794069552ef6da876d58e984
+  TriggerHashes: 00000000
 --- !u!1 &9159899972077372713
 GameObject:
   m_ObjectHideFlags: 0
