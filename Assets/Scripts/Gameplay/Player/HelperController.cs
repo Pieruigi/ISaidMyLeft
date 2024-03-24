@@ -42,8 +42,6 @@ namespace ISML
 
         float zoom;
 
-        
-
         Camera helperCamera;
 
         Vector3 moveInput;
@@ -52,15 +50,17 @@ namespace ISML
         Vector3 velocity;
         float rotationSpeed;
         float yaw = 0;
+        Vector3 lastMousePosition;
 
         private void Start()
         {
             borderSize = Screen.width / 6f;
+            
         }
 
         private void Update()
         {
-            if (PlayerManager.Instance.LocalPlayer.IsCharacter)
+            if (PlayerManager.Instance.LocalPlayer.IsCharacter || !PlayerController.Instance)
                 return;
 
             CheckInput();
@@ -88,7 +88,28 @@ namespace ISML
             yawInput += Input.GetKey(KeyCode.Q) ? 1 : 0;
             yawInput += Input.GetKey(KeyCode.E) ? -1 : 0;
 
-            
+            if (Input.GetMouseButton(0))
+            {
+                Cursor.lockState = CursorLockMode.Locked;
+                if (yawInput == 0)
+                {
+                        float middle = Screen.width / 2f;
+                    Debug.Log($"Middle:{middle}");
+                    Debug.Log($"MousePosition:{Input.mousePosition.x}");
+                    if (lastMousePosition.x > middle)
+                            yawInput = 1;
+                        else
+                            yawInput = -1;
+                      
+                    
+                }
+            }
+            else
+            {
+                Cursor.lockState = CursorLockMode.None;
+                lastMousePosition = Input.mousePosition;
+            }
+
 
             // Keyboard
             zoomInput = 0;

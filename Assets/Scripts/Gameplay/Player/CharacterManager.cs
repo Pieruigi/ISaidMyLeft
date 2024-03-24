@@ -11,7 +11,7 @@ namespace ISML
         [SerializeField]
         GameObject prefab;
 
-        public GameObject Character { get; set; }
+        //public GameObject Character { get; set; }
 
         private void OnEnable()
         {
@@ -28,13 +28,13 @@ namespace ISML
             Debug.Log($"Spawning character....:{scene.buildIndex}");
             if(scene.buildIndex > 0)
             {
-                if (PlayerManager.Instance.LocalPlayer.Runner.IsSharedModeMasterClient && !Character)
+                if (PlayerManager.Instance.LocalPlayer.Runner.IsSharedModeMasterClient && !PlayerController.Instance)
                     PlayerManager.Instance.LocalPlayer.Runner.SpawnAsync(prefab, Vector3.zero, Quaternion.identity, PlayerManager.Instance.LocalPlayer.Runner.LocalPlayer);
             }
             else
             {
                 
-                Character = null;
+                //Character = null;
             }
             
         }
