@@ -1003,9 +1003,9 @@ MonoBehaviour:
   zoomMin: 100
   zoomSpeed: 60
   maxSpeed: 5
-  rotationMaxSpeed: 90
+  rotationSpeed: 100
   acceleration: 10
-  rotationAcceleration: 100
+  rotationAcceleration: 20
   cameraHeight: 20
   cameraRoot: {fileID: 1065505415}
 --- !u!4 &207594003

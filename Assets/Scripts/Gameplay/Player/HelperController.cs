@@ -2,6 +2,7 @@ using Palmmedia.ReportGenerator.Core;
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using Unity.Mathematics;
 using UnityEditor.Experimental.GraphView;
 using UnityEditor.ShaderGraph.Internal;
 using UnityEngine;
@@ -24,13 +25,10 @@ namespace ISML
         float maxSpeed = 5;
 
         [SerializeField]
-        float rotationMaxSpeed = 90;
+        float yawMaxSpeed = 60f;
 
         [SerializeField]
         float acceleration = 10;
-
-        [SerializeField]
-        float rotationAcceleration = 100f;
 
         float borderSize;
 
@@ -48,13 +46,14 @@ namespace ISML
         float yawInput;
         float zoomInput = 0;
         Vector3 velocity;
-        float rotationSpeed;
         float yaw = 0;
-        Vector3 lastMousePosition;
+        Vector3 buttonDownPosition;
+        float startingYaw;
+        float yawSpeed = 0;
 
         private void Start()
         {
-            borderSize = Screen.width / 6f;
+            borderSize = Screen.width / 16f;
             
         }
 
@@ -82,34 +81,35 @@ namespace ISML
             PlayerController.OnSpawned -= HandleOnSpawned;
         }
 
+       float targetYawInput = 0;
+       //float targetYawDiff = 0;
         void CheckInput()
         {
-            yawInput = 0;
-            yawInput += Input.GetKey(KeyCode.Q) ? 1 : 0;
-            yawInput += Input.GetKey(KeyCode.E) ? -1 : 0;
-
-            if (Input.GetMouseButton(0))
+            //yawInput = 0;
+            //yawInput += Input.GetKey(KeyCode.Q) ? 1 : 0;
+            //yawInput += Input.GetKey(KeyCode.E) ? -1 : 0;
+            
+            if (Input.GetMouseButtonDown(1))
             {
-                Cursor.lockState = CursorLockMode.Locked;
-                if (yawInput == 0)
-                {
-                        float middle = Screen.width / 2f;
-                    Debug.Log($"Middle:{middle}");
-                    Debug.Log($"MousePosition:{Input.mousePosition.x}");
-                    if (lastMousePosition.x > middle)
-                            yawInput = 1;
-                        else
-                            yawInput = -1;
-                      
-                    
-                }
-            }
-            else
-            {
-                Cursor.lockState = CursorLockMode.None;
-                lastMousePosition = Input.mousePosition;
-            }
+                buttonDownPosition = Input.mousePosition;
+                startingYaw = yaw;
 
+                //targetYawDiff = targetYawInput - yawInput;
+                targetYawInput = 0;
+                yawInput = 0;
+            }
+            else if (Input.GetMouseButton(1))
+            {
+                targetYawInput = (Input.mousePosition.x - buttonDownPosition.x) / Screen.width;
+                //yawInput = Mathf.MoveTowards(yawInput, (Input.mousePosition.x - buttonDownPosition.x) / Screen.width, Time.deltaTime * .2f);
+            }
+            //else if (Input.GetMouseButtonUp(1))
+            //{
+            //    targetYawInput = 0;
+            //}
+
+            yawInput = Mathf.MoveTowards(yawInput, targetYawInput/* + targetYawDiff*/, Time.deltaTime);
+           
 
             // Keyboard
             zoomInput = 0;
@@ -121,7 +121,7 @@ namespace ISML
                 zoomInput = Input.mouseScrollDelta.y * 10;
 
             moveInput = new Vector3(Input.GetAxisRaw("Horizontal"), 0f, Input.GetAxisRaw("Vertical"));
-            if(moveInput == Vector3.zero && !Input.GetMouseButton(0) && !Input.GetMouseButtonDown(1))
+            if(moveInput == Vector3.zero && !Input.GetMouseButton(0) && !Input.GetMouseButton(1) )
             {
                 if(MouseOnTheLeft() || MouseOnTheRight())
                     moveInput.x = MouseOnTheLeft() ? -1 : 1;
@@ -161,11 +161,25 @@ namespace ISML
                 helperCamera.fieldOfView = zoom;
         }
 
+        
         void Yaw()
         {
-            float targetSpeed = yawInput * rotationMaxSpeed;
-            rotationSpeed = Mathf.MoveTowards(rotationSpeed, targetSpeed, rotationAcceleration * Time.deltaTime);
-            yaw += rotationSpeed * Time.deltaTime;
+            float targetYaw = startingYaw + yawInput * 180f;
+
+            float tmp = 0;
+            //if (targetYaw < yaw)
+            //{
+            //    tmp = Mathf.SmoothDamp(-yaw, -targetYaw, ref yawSpeed, .5f, yawMaxSpeed);
+            //    yaw = -tmp;
+            //}
+            //else
+            //{
+                tmp = Mathf.SmoothDamp(yaw, targetYaw, ref yawSpeed, .25f, yawMaxSpeed);
+                yaw = tmp;
+            //}
+                
+
+            Debug.Log($"targetYaw:{targetYaw}, yaw:{yaw}");
             cameraRoot.transform.rotation = Quaternion.Euler(0, yaw, 0);
         }
 
