@@ -21,11 +21,10 @@ namespace ISML
         float zoomSpeed = 60;
 
        
-        [SerializeField]
-        float maxSpeed = 5;
+               
 
-        [SerializeField]
-        float yawMaxSpeed = 60f;
+        //[SerializeField]
+        //float yawMaxSpeed = 60f;
 
         [SerializeField]
         float acceleration = 10;
@@ -43,13 +42,41 @@ namespace ISML
         Camera helperCamera;
 
         Vector3 moveInput;
-        float yawInput;
+        Vector3 buttonMoveDownPosition;
+        Vector3 moveCurrVel;
+        Vector3 targetMove;
+        Vector3 startingMove;
+        Vector3 move;
+
+        [SerializeField] float moveSpeed = 50;
+        [SerializeField] float moveSmoothTime = .25f;
+        //float maxSpeed = 50;
+
+
         float zoomInput = 0;
         Vector3 velocity;
+        
+        float yawInput;
         float yaw = 0;
-        Vector3 buttonDownPosition;
+        Vector3 buttonRotateDownPosition;
         float startingYaw;
-        float yawSpeed = 0;
+        float yawCurrSpeed = 0;
+        float targetYaw;
+        [SerializeField] float yawSpeed = 180;
+        [SerializeField] float yawSmoothTime = .25f;
+
+        float pitchInput;
+        float pitch = 0;
+        float startingPitch;
+        float minPitch = 60;
+        float maxPitch = 90;
+        float targetPitch;
+        float pitchCurrSpeed;
+        [SerializeField] float pitchSpeed = 30;
+        [SerializeField] float pitchSmoothTime = .25f;
+
+
+        //float targetYawInput = 0;
 
         private void Start()
         {
@@ -66,7 +93,8 @@ namespace ISML
 
             Zoom();
 
-            Yaw();
+           
+            Rotation();
 
             Move();
         }
@@ -81,35 +109,26 @@ namespace ISML
             PlayerController.OnSpawned -= HandleOnSpawned;
         }
 
-       float targetYawInput = 0;
-       //float targetYawDiff = 0;
+      
         void CheckInput()
         {
-            //yawInput = 0;
-            //yawInput += Input.GetKey(KeyCode.Q) ? 1 : 0;
-            //yawInput += Input.GetKey(KeyCode.E) ? -1 : 0;
-            
+                      
             if (Input.GetMouseButtonDown(1))
             {
-                buttonDownPosition = Input.mousePosition;
-                startingYaw = yaw;
-
-                //targetYawDiff = targetYawInput - yawInput;
-                targetYawInput = 0;
+                buttonRotateDownPosition = Input.mousePosition;
+                // Yaw
+                startingYaw = targetYaw;
                 yawInput = 0;
+                // Pitch
+                startingPitch = targetPitch;
+                pitchInput = 0;
             }
             else if (Input.GetMouseButton(1))
             {
-                targetYawInput = (Input.mousePosition.x - buttonDownPosition.x) / Screen.width;
-                //yawInput = Mathf.MoveTowards(yawInput, (Input.mousePosition.x - buttonDownPosition.x) / Screen.width, Time.deltaTime * .2f);
+                yawInput = (Input.mousePosition.x - buttonRotateDownPosition.x) / Screen.width;
+                pitchInput = -(Input.mousePosition.y - buttonRotateDownPosition.y) / Screen.height;
             }
-            //else if (Input.GetMouseButtonUp(1))
-            //{
-            //    targetYawInput = 0;
-            //}
 
-            yawInput = Mathf.MoveTowards(yawInput, targetYawInput/* + targetYawDiff*/, Time.deltaTime);
-           
 
             // Keyboard
             zoomInput = 0;
@@ -120,35 +139,28 @@ namespace ISML
             if(zoomInput == 0)
                 zoomInput = Input.mouseScrollDelta.y * 10;
 
-            moveInput = new Vector3(Input.GetAxisRaw("Horizontal"), 0f, Input.GetAxisRaw("Vertical"));
-            if(moveInput == Vector3.zero && !Input.GetMouseButton(0) && !Input.GetMouseButton(1) )
+
+            if (Input.GetMouseButtonDown(0))
             {
-                if(MouseOnTheLeft() || MouseOnTheRight())
-                    moveInput.x = MouseOnTheLeft() ? -1 : 1;
-                if (MouseOnTheTop() || MouseOnTheBottom())
-                    moveInput.z = MouseOnTheBottom() ? -1 : 1;
+                buttonMoveDownPosition = Input.mousePosition;
+                startingMove = targetMove;
+
+                moveInput = Vector3.zero;
             }
+            else if (Input.GetMouseButton(0))
+            {
+                float moveX = (Input.mousePosition.x - buttonMoveDownPosition.x) / Screen.width;
+                float moveZ = (Input.mousePosition.y - buttonMoveDownPosition.y) / Screen.height;
+                moveInput = new Vector3(-moveX, 0, -moveZ);
+            }
+            else if (Input.GetMouseButtonUp(0))
+            {
+                moveInput = Vector3.zero;
+            }
+          
         }
 
-        bool MouseOnTheLeft()
-        {
-            return Input.mousePosition.x < borderSize;
-        }
-
-        bool MouseOnTheRight()
-        {
-            return Input.mousePosition.x > Screen.width - borderSize;
-        }
-
-        bool MouseOnTheBottom()
-        {
-            return Input.mousePosition.y < borderSize;
-        }
-
-        bool MouseOnTheTop()
-        {
-            return Input.mousePosition.y > Screen.height - borderSize;
-        }
+      
 
         void Zoom()
         {
@@ -162,56 +174,30 @@ namespace ISML
         }
 
         
-        void Yaw()
+        void Rotation()
         {
-            float targetYaw = startingYaw + yawInput * 180f;
+            targetPitch = startingPitch + pitchInput * pitchSpeed;
+            targetPitch = Mathf.Clamp(targetPitch, minPitch, maxPitch);
+            pitch = Mathf.SmoothDamp(pitch, targetPitch, ref pitchCurrSpeed, pitchSmoothTime);
 
-            float tmp = 0;
-            //if (targetYaw < yaw)
-            //{
-            //    tmp = Mathf.SmoothDamp(-yaw, -targetYaw, ref yawSpeed, .5f, yawMaxSpeed);
-            //    yaw = -tmp;
-            //}
-            //else
-            //{
-                tmp = Mathf.SmoothDamp(yaw, targetYaw, ref yawSpeed, .25f, yawMaxSpeed);
-                yaw = tmp;
-            //}
-                
+            targetYaw = startingYaw + yawInput * yawSpeed;
+            yaw = Mathf.SmoothDamp(yaw, targetYaw, ref yawCurrSpeed, yawSmoothTime);
 
             Debug.Log($"targetYaw:{targetYaw}, yaw:{yaw}");
-            cameraRoot.transform.rotation = Quaternion.Euler(0, yaw, 0);
+            //helperCamera.transform.localRotation = Quaternion.Euler(0, yaw, 0);
+            cameraRoot.transform.rotation = Quaternion.Euler(pitch, yaw, 0);
         }
+
+       
 
         void Move()
         {
-            float currSpeed = velocity.magnitude;
-            float targetSpeed = 0;
-            Vector3 targetDir = cameraRoot.forward * moveInput.z + cameraRoot.right * moveInput.x;
-            if (moveInput.magnitude > 0)
-            {
-                if(currSpeed > 0 && Vector3.Dot(targetDir, velocity) < 0)
-                    targetSpeed = 0;
-                else
-                    targetSpeed = maxSpeed;
-
-               
-            }
-            else
-            {
-                targetSpeed = 0;
-            }
-
-            //if (targetSpeed < 0)
-            //    targetSpeed = 0;
-            //if (targetSpeed > maxSpeed)
-            //    targetSpeed = maxSpeed;
-           
-            Vector3 targetVelocity = targetDir.normalized * targetSpeed;
-            velocity = Vector3.MoveTowards(velocity, targetVelocity, acceleration * Time.deltaTime);
-            cameraRoot.position +=  velocity * Time.deltaTime;
+            targetMove = startingMove + moveInput * moveSpeed;
+            move = Vector3.SmoothDamp(move, targetMove, ref moveCurrVel, moveSmoothTime);
+            cameraRoot.position += move * Time.deltaTime;
         }
 
+      
         private void HandleOnSpawned()
         {
             Init();
@@ -222,14 +208,17 @@ namespace ISML
             if (PlayerManager.Instance.LocalPlayer.IsCharacter)
                 return;
 
-            cameraRoot.position = new Vector3(cameraRoot.position.x, cameraHeight, cameraRoot.position.z);
-            helperCamera = Camera.main;
-
+            cameraRoot.position = new Vector3(PlayerController.Instance.transform.position.x, 0, PlayerController.Instance.transform.position.z);
+            cameraRoot.eulerAngles = new Vector3(90f, 0, 0);
             
+            helperCamera = Camera.main;
             helperCamera.transform.parent = cameraRoot;
-            helperCamera.transform.localPosition = PlayerController.Instance.transform.position;
+            helperCamera.transform.position = cameraRoot.position + Vector3.up * cameraHeight;
             helperCamera.transform.localRotation = Quaternion.identity;
-            helperCamera.transform.eulerAngles = new Vector3(90f, 0, 0);
+            //helperCamera.transform.localEulerAngles = new Vector3(0, 0, 0);
+            startingPitch = 90;
+            startingYaw = 0;
+
             zoom = (zoomMin - zoomMax) / 2f;
             helperCamera.fieldOfView = zoom;
         }
