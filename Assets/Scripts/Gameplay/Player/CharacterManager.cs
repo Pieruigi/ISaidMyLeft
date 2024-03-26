@@ -29,7 +29,7 @@ namespace ISML
             if(scene.buildIndex > 0)
             {
                 if (PlayerManager.Instance.LocalPlayer.Runner.IsSharedModeMasterClient && !PlayerController.Instance)
-                    PlayerManager.Instance.LocalPlayer.Runner.SpawnAsync(prefab, Vector3.zero, Quaternion.identity, PlayerManager.Instance.LocalPlayer.Runner.LocalPlayer);
+                    PlayerManager.Instance.LocalPlayer.Runner.SpawnAsync(prefab, LevelController.Instance.PlayerSpawnPoint.position, LevelController.Instance.PlayerSpawnPoint.rotation, PlayerManager.Instance.LocalPlayer.Runner.LocalPlayer);
             }
             else
             {

@@ -1,12 +1,14 @@
 using Fusion;
 using System.Collections;
 using System.Collections.Generic;
+using System.Threading.Tasks;
+using UnityEditor.SceneManagement;
 using UnityEngine;
 using UnityEngine.Events;
 
 namespace ISML
 {
-    public enum PlayerState { Normal, Dead }
+    public enum PlayerState: byte { Normal, Dead, Test }
 
     public class PlayerController : NetworkBehaviour
     {
@@ -71,11 +73,15 @@ namespace ISML
         Animator animator;
         string crouchAnimParam = "Crouch";
 
-        PlayerState state;
-        public PlayerState State
-        {
-            get { return state; }
-        }
+        //PlayerState state;
+        [UnitySerializeField]
+        [Networked]
+        public PlayerState State { get; private set; }
+        //{
+        //    get { return state; }
+        //}
+
+        ChangeDetector changeDetector;
 
         private void Awake()
         {
@@ -99,11 +105,16 @@ namespace ISML
         // Update is called once per frame
         void Update()
         {
+            if (Input.GetKeyDown(KeyCode.R)) { ResetPlayer();}
+
+            DetectChanges();
+
             UpdateState();
         }
 
         private void LateUpdate()
         {
+            
             LateUpdateState();
         }
 
@@ -119,6 +130,7 @@ namespace ISML
 
         public override void FixedUpdateNetwork()
         {
+           
             base.FixedUpdateNetwork();
 
             FixedUpdateNetworkState();
@@ -134,22 +146,74 @@ namespace ISML
             {
                 GetControl();
             }
-            
+
+            changeDetector = GetChangeDetector(ChangeDetector.Source.SimulationState);
+
             OnSpawned?.Invoke();
         }
 
         void HandleOnTileEnter(FloorTile tile)
         {
-            if (tile.TileState == (byte)TileState.Red)
+            if (tile.State == TileState.Red)
             {
-                Die();
+                if (HasStateAuthority)
+                {
+                    State = PlayerState.Dead;
+                }
             }
         }
 
-        void Die()
+        async void Die()
         {
-            Debug.LogError("Not implemented");
+            Debug.Log("Player dead");
+            await Task.Delay(System.TimeSpan.FromSeconds(3));
 
+            ResetPlayer();
+            
+
+        }
+
+        async void ResetPlayer()
+        {
+            //State = PlayerState.Test;
+            
+            //await Task.Delay(System.TimeSpan.FromSeconds(1f));
+            yaw = 0;
+            pitch = 0;
+            velocity = Vector3.zero;
+            moveInput = Vector2.zero;
+            aimInput = Vector2.zero;
+            crouchInput = false;
+            walkInput = false;
+            jumpInput = false;
+            jumping = false;
+            crouching = false;
+
+
+            //characterController.Move(transform.forward * 5);
+            var netTrans = GetComponent<NetworkTransform>();
+            if (HasStateAuthority)
+            {
+                netTrans.DisableSharedModeInterpolation = true;
+            }
+            
+            await Task.Delay(System.TimeSpan.FromSeconds(.25f));
+
+            // Fade out here
+
+            transform.position = LevelController.Instance.PlayerSpawnPoint.position;
+            transform.rotation = LevelController.Instance.PlayerSpawnPoint.rotation;
+
+            // Fade in here
+
+            await Task.Delay(System.TimeSpan.FromSeconds(.25f));
+
+            if(HasStateAuthority)
+            {
+                netTrans.DisableSharedModeInterpolation = false;
+                State = PlayerState.Normal;
+            }
+            
         }
 
         void GetControl()
@@ -162,9 +226,9 @@ namespace ISML
 
         void UpdateState()
         {
-            switch (state)
+            switch (State)
             {
-                case PlayerState.Normal:
+                case (byte)PlayerState.Normal:
                     UpdateNormalState();
                     break;
             }
@@ -173,9 +237,9 @@ namespace ISML
 
         void LateUpdateState()
         {
-            switch (state)
+            switch (State)
             {
-                case PlayerState.Normal:
+                case (byte)PlayerState.Normal:
                     LateUpdateNormalState();
                     break;
             }
@@ -183,9 +247,9 @@ namespace ISML
 
         void FixedUpdateNetworkState()
         {
-            switch (state)
+            switch (State)
             {
-                case PlayerState.Normal:
+                case (byte)PlayerState.Normal:
                     FixedUpdateNetworkNormalState();
                     break;
             }
@@ -223,7 +287,42 @@ namespace ISML
             UpdateAnimations();
         }
 
+        void DetectChanges()
+        {
+            if(changeDetector == null)
+                return;
+            foreach (var propertyName in changeDetector.DetectChanges(this, out var previousBuffer, out var currentBuffer))
+            {
+                switch (propertyName)
+                {
+                    //case nameof(Name):
+                    //    var nameReader = GetPropertyReader<NetworkString<_16>>(propertyName);
+                    //    var (namePrev, nameCurr) = nameReader.Read(previousBuffer, currentBuffer);
+                    //    Debug.Log($"Player - Name changed from {namePrev} to {nameCurr}");
+                    //    break;
+                    case nameof(State):
+                        var stateReader = GetPropertyReader<PlayerState>(propertyName);
+                        var (statePrev, stateCurr) = stateReader.Read(previousBuffer, currentBuffer);
+                        EnterNewState(statePrev, stateCurr);
+                        break;
+                }
+            }
+        }
         
+        void EnterNewState(PlayerState oldState, PlayerState newState)
+        {
+            switch(newState)
+            {
+                case PlayerState.Normal:
+
+                    break;
+
+                case PlayerState.Dead:
+                    Die();    
+                    break;
+            }
+        }
+
         private void CheckInput()
         {
             moveInput = new Vector2(Input.GetAxisRaw("Horizontal"), Input.GetAxisRaw("Vertical"));
