@@ -6,7 +6,7 @@ using UnityEngine.Events;
 
 namespace ISML
 {
-    public enum PlayerState { Normal }
+    public enum PlayerState { Normal, Dead }
 
     public class PlayerController : NetworkBehaviour
     {
@@ -107,6 +107,16 @@ namespace ISML
             LateUpdateState();
         }
 
+        private void OnEnable()
+        {
+            FloorTile.OnTileEnter += HandleOnTileEnter;
+        }
+
+        private void OnDisable()
+        {
+            FloorTile.OnTileEnter -= HandleOnTileEnter;
+        }
+
         public override void FixedUpdateNetwork()
         {
             base.FixedUpdateNetwork();
@@ -126,6 +136,20 @@ namespace ISML
             }
             
             OnSpawned?.Invoke();
+        }
+
+        void HandleOnTileEnter(FloorTile tile)
+        {
+            if (tile.TileState == (byte)TileState.Red)
+            {
+                Die();
+            }
+        }
+
+        void Die()
+        {
+            Debug.LogError("Not implemented");
+
         }
 
         void GetControl()

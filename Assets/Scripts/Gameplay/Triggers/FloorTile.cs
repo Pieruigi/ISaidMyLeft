@@ -1,0 +1,62 @@
+using Fusion;
+using System.Collections;
+using System.Collections.Generic;
+using UnityEngine;
+using UnityEngine.Events;
+
+namespace ISML
+{
+    public enum TileState { White, Red, Green, Yellow }
+
+    public class FloorTile : NetworkBehaviour
+    {
+        public static UnityAction<FloorTile> OnTileEnter;
+
+        [UnitySerializeField]
+        [Networked]        
+        public byte TileState { get; private set; }
+
+        ChangeDetector changeDetector;
+
+
+        private void Update()
+        {
+            foreach (var propertyName in changeDetector.DetectChanges(this, out var previousBuffer, out var currentBuffer))
+            {
+                switch (propertyName)
+                {
+                    //case nameof(Name):
+                    //    var nameReader = GetPropertyReader<NetworkString<_16>>(propertyName);
+                    //    var (namePrev, nameCurr) = nameReader.Read(previousBuffer, currentBuffer);
+                    //    Debug.Log($"Player - Name changed from {namePrev} to {nameCurr}");
+                    //    break;
+                    case nameof(TileState):
+                        var stateReader = GetPropertyReader<byte>(propertyName);
+                        var (statePrev, stateCurr) = stateReader.Read(previousBuffer, currentBuffer);
+                        break;
+                }
+            }
+        }
+
+        public override void Spawned()
+        {
+            base.Spawned();
+            changeDetector = GetChangeDetector(ChangeDetector.Source.SimulationState);
+
+        }
+
+
+
+        private void OnTriggerEnter(Collider other)
+        {
+            if (other.CompareTag("Player"))
+                OnTileEnter?.Invoke(this);
+        }
+
+        public void SetState(TileState state)
+        {
+            TileState = (byte)state;
+        }
+    }
+
+}
