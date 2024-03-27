@@ -18,6 +18,14 @@ namespace ISML
 
         ChangeDetector changeDetector;
 
+        private void Start()
+        {
+            //ColorController[] cs = GetComponentsInChildren<ColorController>();
+            //foreach (var c in cs)
+            //{
+            //    c.SetColor(0);
+            //}
+        }
 
         private void Update()
         {
@@ -28,7 +36,12 @@ namespace ISML
         {
             base.Spawned();
             changeDetector = GetChangeDetector(ChangeDetector.Source.SimulationState);
-
+            
+            ColorController[] cs = GetComponentsInChildren<ColorController>();
+            foreach (var c in cs)
+            {
+                c.SetColor(State);
+            }
         }
 
         void DetectChanges()
@@ -55,6 +68,7 @@ namespace ISML
 
         private void OnTriggerEnter(Collider other)
         {
+            Debug.Log("Entering floor tile trigger...");
             if (other.CompareTag("Player"))
                 OnTileEnter?.Invoke(this);
         }

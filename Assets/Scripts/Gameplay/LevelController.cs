@@ -11,6 +11,11 @@ namespace ISML
 
         public Transform PlayerSpawnPoint { get { return playerSpawnPoint; } }
 
+        private void Start()
+        {
+            
+        }
+
        
     }
 
