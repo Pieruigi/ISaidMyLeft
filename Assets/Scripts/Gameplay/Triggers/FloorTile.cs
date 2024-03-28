@@ -11,6 +11,7 @@ namespace ISML
     public class FloorTile : NetworkBehaviour
     {
         public static UnityAction<FloorTile> OnTileEnter;
+        public UnityAction OnSpawned;
 
         [UnitySerializeField]
         [Networked]        
@@ -36,12 +37,10 @@ namespace ISML
         {
             base.Spawned();
             changeDetector = GetChangeDetector(ChangeDetector.Source.SimulationState);
-            
-            ColorController[] cs = GetComponentsInChildren<ColorController>();
-            foreach (var c in cs)
-            {
-                c.SetColor(State);
-            }
+
+            SetColors();
+
+            OnSpawned?.Invoke();
         }
 
         void DetectChanges()
@@ -61,8 +60,19 @@ namespace ISML
                     case nameof(State):
                         var stateReader = GetPropertyReader<TileState>(propertyName);
                         var (statePrev, stateCurr) = stateReader.Read(previousBuffer, currentBuffer);
+                        SetColors();
                         break;
                 }
+            }
+        }
+
+        void SetColors()
+        {
+            ColorController[] cs = GetComponentsInChildren<ColorController>();
+            foreach (var c in cs)
+            {
+                Debug.Log($"Setting color state:{State}");
+                c.SetColor(State);
             }
         }
 

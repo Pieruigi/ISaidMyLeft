@@ -36,11 +36,7 @@ namespace ISML
             this.color = color;
             if (true || !PlayerManager.Instance.LocalPlayer.IsCharacter)
             {
-                //if(gameObject.transform.parent.name.EndsWith("(2)"))
-                //    color = TileState.Red;
-                
-                //Debug.Log($"Setting color:{color}");
-
+              
                 rend.material.SetColor("_BaseColor", ColorState.Colors[(int)color]);
                 rend.material.SetColor("_EmissiveColor", ColorState.Colors[(int)color]);
                 DynamicGI.SetEmissive(rend, ColorState.Colors[(int)color]);

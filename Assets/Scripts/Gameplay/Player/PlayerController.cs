@@ -152,12 +152,13 @@ namespace ISML
             OnSpawned?.Invoke();
         }
 
-        void HandleOnTileEnter(FloorTile tile)
+        async void HandleOnTileEnter(FloorTile tile)
         {
             if (tile.State == TileState.Red)
             {
                 if (HasStateAuthority)
                 {
+                    await Task.Delay(System.TimeSpan.FromSeconds(1));
                     State = PlayerState.Dead;
                 }
             }
