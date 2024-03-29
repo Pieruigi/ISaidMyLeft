@@ -1,6 +1,8 @@
 using Fusion;
+using ISML.UI;
 using System.Collections;
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading.Tasks;
 using UnityEditor.SceneManagement;
 using UnityEngine;
@@ -8,7 +10,7 @@ using UnityEngine.Events;
 
 namespace ISML
 {
-    public enum PlayerState: byte { Normal, Dead, Test }
+    public enum PlayerState: byte { Normal, Dead, Test, Busy }
 
     public class PlayerController : NetworkBehaviour
     {
@@ -105,7 +107,10 @@ namespace ISML
         // Update is called once per frame
         void Update()
         {
-            if (Input.GetKeyDown(KeyCode.R)) { ResetPlayer();}
+            //if (Input.GetKeyDown(KeyCode.R))
+            //{
+            //    State = PlayerState.Dead;
+            //}
 
             DetectChanges();
 
@@ -144,6 +149,7 @@ namespace ISML
             // Move the scene camera under the player who has state authority
             if (HasStateAuthority)
             {
+                State = PlayerState.Busy;
                 GetControl();
             }
 
@@ -154,6 +160,8 @@ namespace ISML
 
         async void HandleOnTileEnter(FloorTile tile)
         {
+            if (!LevelController.Instance.IsSpawned || LevelController.Instance.State != LevelState.Ready)
+                return;
             if (tile.State == TileState.Red)
             {
                 if (HasStateAuthority)
@@ -167,9 +175,12 @@ namespace ISML
         async void Die()
         {
             Debug.Log("Player dead");
-            await Task.Delay(System.TimeSpan.FromSeconds(3));
+            //await Task.Delay(System.TimeSpan.FromSeconds(1));
+            await CameraFader.Instance.FadeOut(1f);
 
-            ResetPlayer();
+            LevelController.Instance.ChangeMasterClient();
+
+            //ResetPlayer();
             
 
         }
@@ -201,6 +212,7 @@ namespace ISML
             await Task.Delay(System.TimeSpan.FromSeconds(.25f));
 
             // Fade out here
+
 
             transform.position = LevelController.Instance.PlayerSpawnPoint.position;
             transform.rotation = LevelController.Instance.PlayerSpawnPoint.rotation;
@@ -469,6 +481,11 @@ namespace ISML
             return runSpeed;
         }
 
+        public void SetNormalState()
+        {
+            if (HasStateAuthority)
+                State = PlayerState.Normal;
+        }
     }
 
 }

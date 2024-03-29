@@ -183,7 +183,7 @@ namespace ISML
             targetYaw = startingYaw + yawInput * yawSpeed;
             yaw = Mathf.SmoothDamp(yaw, targetYaw, ref yawCurrSpeed, yawSmoothTime);
 
-            Debug.Log($"targetYaw:{targetYaw}, yaw:{yaw}");
+            
             //helperCamera.transform.localRotation = Quaternion.Euler(0, yaw, 0);
             cameraRoot.transform.rotation = Quaternion.Euler(pitch, yaw, 0);
         }

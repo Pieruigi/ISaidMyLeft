@@ -25,11 +25,15 @@ namespace ISML
 
         private void HandleOnSceneLoaded(Scene scene, LoadSceneMode mode)
         {
-            Debug.Log($"Spawning character....:{scene.buildIndex}");
+            
             if(scene.buildIndex > 0)
             {
                 if (PlayerManager.Instance.LocalPlayer.Runner.IsSharedModeMasterClient && !PlayerController.Instance)
+                {
+                    Debug.Log($"Spawning character....:{scene.buildIndex}");
                     PlayerManager.Instance.LocalPlayer.Runner.SpawnAsync(prefab, LevelController.Instance.PlayerSpawnPoint.position, LevelController.Instance.PlayerSpawnPoint.rotation, PlayerManager.Instance.LocalPlayer.Runner.LocalPlayer);
+                }
+                    
             }
             else
             {

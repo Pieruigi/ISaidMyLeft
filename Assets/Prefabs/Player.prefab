@@ -51,6 +51,12 @@ MonoBehaviour:
       Data: 00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
   _HelperOnly:
     _value: 0
+  _Ready:
+    _value: 0
+  _IsCharacter:
+    _value: 0
+  _InGame:
+    _value: 0
 --- !u!114 &2410244365295830981
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -65,7 +71,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   SortKey: 3999994176
   ObjectInterest: 1
-  Flags: 262145
+  Flags: 786433
   NestedObjects: []
   NetworkedBehaviours:
   - {fileID: 5171386044657395072}

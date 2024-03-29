@@ -34,7 +34,7 @@ namespace ISML
         {
             
             this.color = color;
-            if (true || !PlayerManager.Instance.LocalPlayer.IsCharacter)
+            if (!PlayerManager.Instance.LocalPlayer.IsCharacter)
             {
               
                 rend.material.SetColor("_BaseColor", ColorState.Colors[(int)color]);

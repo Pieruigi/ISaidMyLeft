@@ -28,7 +28,7 @@ namespace ISML
 
         private void Start()
         {
-            ResetTiles();
+            
         }
 
         private void Update()
@@ -66,7 +66,7 @@ namespace ISML
         {
             if (!PlayerManager.Instance.LocalPlayer.IsCharacter)
                 return;
-            Debug.Log("********************Reset tiles***********************");
+           
             // Set all the tiles as red
             for(int i=0; i<tiles.Count; i++)
             {
@@ -82,11 +82,9 @@ namespace ISML
 
         bool CheckTile(FloorTile tile, ref List<FloorTile> tilesToCheck)
         {
-            Debug.Log($"Check tile {tiles.IndexOf(tile)}");
             // Set the current tile as walkable
             tile.SetState(TileState.White);
             // If is the exit tile then return true
-            Debug.Log($"Tile {tiles.IndexOf(tile)} is exit tile:{tile == exitTile}");
             if (tile == exitTile)
                 return true;
             // Not the exit tile, find an adiacent tile to continue
@@ -109,9 +107,7 @@ namespace ISML
             foreach(var t in candidates)
                 tilesToCheck.Remove(t);
 
-            foreach (var t in candidates)
-                Debug.Log($"Candidate {tiles.IndexOf(t)}");
-
+           
             List<int> indices = new List<int>();
             for(int i=0; i<candidates.Count; i++)
                 indices.Add(i);
@@ -119,13 +115,11 @@ namespace ISML
             while(indices.Count > 0) 
             {
                 int index = indices[UnityEngine.Random.Range(0, indices.Count)];
-                Debug.Log($"Check index {index}");
                 indices.Remove(index);
                 if (CheckTile(candidates[index], ref tilesToCheck))
                     return true;
             }
 
-            Debug.Log($"Failed tile {tiles.IndexOf(tile)}");
             tile.SetState(TileState.Red);
             return false;
             

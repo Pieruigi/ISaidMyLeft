@@ -28,6 +28,7 @@ namespace ISML
         [Networked]
         public NetworkBool IsCharacter { get; set; }
 
+
         [UnitySerializeField]
         [Networked]
         public NetworkBool InGame { get; set; }

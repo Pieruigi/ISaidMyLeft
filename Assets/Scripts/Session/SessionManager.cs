@@ -38,6 +38,9 @@ namespace ISML
             get { if (!networkRunner) networkRunner = GetComponent<NetworkRunner>(); return networkRunner; }
         }
     
+        public bool IsSwitchingMasterClient { get; set; } = false;
+        
+
         protected override void Awake()
         {
             base.Awake();
@@ -186,6 +189,7 @@ namespace ISML
 
         public void OnHostMigration(NetworkRunner runner, HostMigrationToken hostMigrationToken)
         {
+            Debug.Log($"Host migration, local is the new master client :{runner.IsSharedModeMasterClient}");
         }
 
         public void OnInput(NetworkRunner runner, NetworkInput input)
