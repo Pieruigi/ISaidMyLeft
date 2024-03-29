@@ -2,10 +2,7 @@ using Fusion;
 using System;
 using System.Collections;
 using System.Collections.Generic;
-using Unity.PlasticSCM.Editor.WebApi;
 using UnityEngine;
-using UnityEngine.Events;
-using UnityEngine.Experimental.Rendering.RenderGraphModule;
 
 namespace ISML
 {
@@ -76,6 +73,12 @@ namespace ISML
             PlayerManager.Instance.RemovePlayer(this);
         }
 
+
+        [Rpc(RpcSources.All, RpcTargets.StateAuthority)]
+        public void SetIsCharacterRpc(NetworkBool value)
+        {
+            IsCharacter = value;
+        }
     }
 
 }

@@ -4,7 +4,6 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
-using UnityEditor.SceneManagement;
 using UnityEngine;
 using UnityEngine.Events;
 
@@ -147,16 +146,32 @@ namespace ISML
             base.Spawned();
 
             // Move the scene camera under the player who has state authority
-            if (HasStateAuthority)
-            {
+            if(HasStateAuthority)
                 State = PlayerState.Busy;
+
+            if (PlayerManager.Instance.LocalPlayer.IsCharacter)
+            {
+                if (!HasStateAuthority)
+                    Object.RequestStateAuthority();
+
                 GetControl();
             }
+            else
+            {
+                if(HasStateAuthority)
+                {
+                    Object.ReleaseStateAuthority();
+                }
+            }
+                
+
 
             changeDetector = GetChangeDetector(ChangeDetector.Source.SimulationState);
 
             OnSpawned?.Invoke();
         }
+
+       
 
         async void HandleOnTileEnter(FloorTile tile)
         {
@@ -178,9 +193,9 @@ namespace ISML
             //await Task.Delay(System.TimeSpan.FromSeconds(1));
             await CameraFader.Instance.FadeOut(1f);
 
-            LevelController.Instance.ChangeMasterClient();
-
-            //ResetPlayer();
+            
+            LevelController.Instance.SwitchPlayerAndReload();
+                     
             
 
         }

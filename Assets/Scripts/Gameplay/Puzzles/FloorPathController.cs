@@ -64,7 +64,7 @@ namespace ISML
 
         public void ResetTiles()
         {
-            if (!PlayerManager.Instance.LocalPlayer.IsCharacter)
+            if (!PlayerManager.Instance.LocalPlayer.Runner.IsSharedModeMasterClient)
                 return;
            
             // Set all the tiles as red

@@ -1,10 +1,7 @@
-using Palmmedia.ReportGenerator.Core;
 using System;
 using System.Collections;
 using System.Collections.Generic;
 using Unity.Mathematics;
-using UnityEditor.Experimental.GraphView;
-using UnityEditor.ShaderGraph.Internal;
 using UnityEngine;
 
 namespace ISML
@@ -86,9 +83,9 @@ namespace ISML
 
         private void Update()
         {
-            if (PlayerManager.Instance.LocalPlayer.IsCharacter || !PlayerController.Instance)
+            if (PlayerManager.Instance.LocalPlayer.IsCharacter || !PlayerController.Instance || PlayerController.Instance.State != PlayerState.Normal)
                 return;
-
+             
             CheckInput();
 
             Zoom();

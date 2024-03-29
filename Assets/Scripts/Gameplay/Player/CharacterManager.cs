@@ -13,35 +13,35 @@ namespace ISML
 
         //public GameObject Character { get; set; }
 
-        private void OnEnable()
-        {
-            SceneManager.sceneLoaded += HandleOnSceneLoaded;
-        }
+        //private void OnEnable()
+        //{
+        //    SceneManager.sceneLoaded += HandleOnSceneLoaded;
+        //}
 
-        private void OnDisable()
-        {
-            SceneManager.sceneLoaded -= HandleOnSceneLoaded;
-        }
+        //private void OnDisable()
+        //{
+        //    SceneManager.sceneLoaded -= HandleOnSceneLoaded;
+        //}
 
-        private void HandleOnSceneLoaded(Scene scene, LoadSceneMode mode)
-        {
-            
-            if(scene.buildIndex > 0)
-            {
-                if (PlayerManager.Instance.LocalPlayer.Runner.IsSharedModeMasterClient && !PlayerController.Instance)
-                {
-                    Debug.Log($"Spawning character....:{scene.buildIndex}");
-                    PlayerManager.Instance.LocalPlayer.Runner.SpawnAsync(prefab, LevelController.Instance.PlayerSpawnPoint.position, LevelController.Instance.PlayerSpawnPoint.rotation, PlayerManager.Instance.LocalPlayer.Runner.LocalPlayer);
-                }
+        //private void HandleOnSceneLoaded(Scene scene, LoadSceneMode mode)
+        //{
+        //    return;
+        //    if(scene.buildIndex > 0)
+        //    {
+        //        if (PlayerManager.Instance.LocalPlayer.IsCharacter && !PlayerController.Instance)
+        //        {
+        //            Debug.Log($"Spawning character....:{scene.buildIndex}");
+        //            PlayerManager.Instance.LocalPlayer.Runner.SpawnAsync(prefab, LevelController.Instance.PlayerSpawnPoint.position, LevelController.Instance.PlayerSpawnPoint.rotation, PlayerManager.Instance.LocalPlayer.Runner.LocalPlayer);
+        //        }
                     
-            }
-            else
-            {
+        //    }
+        //    else
+        //    {
                 
-                //Character = null;
-            }
+        //        //Character = null;
+        //    }
             
-        }
+        //}
 
 
 

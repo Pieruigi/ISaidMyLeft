@@ -54,7 +54,7 @@ namespace ISML
             if (Input.GetKeyDown(KeyCode.R))
             {
 
-                ChangeMasterClient();
+                SwitchPlayerAndReload();
 
                 /*ResetPlayer();*/
             }
@@ -73,6 +73,8 @@ namespace ISML
             changeDetector = GetChangeDetector(ChangeDetector.Source.SimulationState);
 
             IsSpawned = true;
+
+
             FakeReady();
         }
 
@@ -109,60 +111,33 @@ namespace ISML
 
         async void SetReady()
         {
-            if (!SessionManager.Instance.IsSwitchingMasterClient)
-            {
-                await CameraFader.Instance.FadeIn(1f);
+            await CameraFader.Instance.FadeIn(1f);
 
-                PlayerController.Instance.SetNormalState();
-            }
-            else
-            {
-                SessionManager.Instance.IsSwitchingMasterClient = false;
-                if (Runner.IsSharedModeMasterClient)
-                {
-                    Debug.Log("Reloading level...");
-                    await Task.Delay(System.TimeSpan.FromSeconds(2f));
-                    await Runner.LoadScene(SceneRef.FromIndex(1), LoadSceneMode.Single);
-                }
+            PlayerController.Instance.SetNormalState();
 
-            }
+           
         }
 
-        //async void Reload()
-        //{
-        //    await Task.Delay(System.TimeSpan.FromSeconds(5));
-
-        //    Debug.Log("Reloading level");
-        //    await Runner.LoadScene(SceneRef.FromIndex(1), LoadSceneMode.Single);
-        //}
-
-        public async void ChangeMasterClient()
+     
+        public async void SwitchPlayerAndReload()
         {
-            //SessionManager.Instance.IsSwitchingMasterClient = true;
-
-            //if (!Runner.IsSharedModeMasterClient) return;
-            await Task.Delay(System.TimeSpan.FromSeconds(2f));
             if (Runner.IsSharedModeMasterClient)
             {
-                Player p = PlayerManager.Instance.Players.Where(p => p != PlayerManager.Instance.LocalPlayer).First();
+                Player currentCharacter = PlayerManager.Instance.Players.Where(p => p.IsCharacter).First();
+                Player nextCharacter = PlayerManager.Instance.Players.Where(p => !p.IsCharacter).First();
 
-                // Set level state on switching
+                currentCharacter.SetIsCharacterRpc(false);
+                nextCharacter.SetIsCharacterRpc(true);
 
-                await Task.Delay(System.TimeSpan.FromSeconds(2f));
+                await Task.Delay(System.TimeSpan.FromSeconds(1f));
 
-                Runner.SetMasterClient(p.Object.InputAuthority);
-            }
-            else
-            {
-                //while(!Runner.IsSharedModeMasterClient) { await Task.Delay(500); }
-                await Task.Delay(10000);
                 await Runner.LoadScene(SceneRef.FromIndex(1), LoadSceneMode.Single);
             }
-            
+
 
         }
 
-        
+
     }
 
 }

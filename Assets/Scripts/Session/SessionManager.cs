@@ -37,8 +37,6 @@ namespace ISML
         {
             get { if (!networkRunner) networkRunner = GetComponent<NetworkRunner>(); return networkRunner; }
         }
-    
-        public bool IsSwitchingMasterClient { get; set; } = false;
         
 
         protected override void Awake()
