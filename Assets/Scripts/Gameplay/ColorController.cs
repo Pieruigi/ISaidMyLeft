@@ -19,15 +19,17 @@ namespace ISML
 
         float colorTime = .25f;
         float emissionIntensity = 5f;
+        
+        //Color currentColor = Color.white;
+        //Color targetColor;
 
-        Color currentColor = Color.white;
-        Color targetColor;
 
         private void Awake()
         {
             rend = GetComponent<Renderer>();
             Material mat = new Material(rend.material);
             rend.material = mat;
+           
         }
 
         private void Update()
@@ -37,13 +39,17 @@ namespace ISML
             {
                 SetColor(TileState.Red);
             }
+            if (Input.GetKeyDown(KeyCode.P))
+            {
+                Pulse(3, TileState.Green);
+            }
 #endif
         }
 
         public void SetColor(TileState tileState)
         {
-            targetColor = ColorState.Colors[(int)tileState];
-            currentColor = rend.material.GetColor("_BaseColor");
+            Color targetColor = ColorState.Colors[(int)tileState];
+            Color currentColor = rend.material.GetColor("_BaseColor");
             this.tileState = tileState;
 
             if (
@@ -52,7 +58,11 @@ namespace ISML
 #endif
             !PlayerManager.Instance.LocalPlayer.IsCharacter)
             {
-                DOTween.To(() => currentColor, x => currentColor = x, targetColor, colorTime).onUpdate += OnColorUpdate;
+                DOTween.To(() => currentColor, x => currentColor = x, targetColor, colorTime).onUpdate += () =>
+                {
+                    rend.material.SetColor("_BaseColor", currentColor);
+                    rend.material.SetColor("_EmissiveColor", currentColor * emissionIntensity);
+                };
               
                 //rend.material.SetColor("_BaseColor", ColorState.Colors[(int)tileState]);
                 //rend.material.SetColor("_EmissiveColor", ColorState.Colors[(int)tileState]);
@@ -69,11 +79,31 @@ namespace ISML
             }
         }
 
-        private void OnColorUpdate()
+       
+
+    
+        public void Pulse(float pulseDuration, TileState tileState)
         {
-            Debug.Log($"Current color:{currentColor}");
-            rend.material.SetColor("_BaseColor", currentColor);
-            rend.material.SetColor("_EmissiveColor", currentColor * emissionIntensity);
+            
+            if (
+#if UNITY_EDITOR
+              true ||
+#endif
+          !PlayerManager.Instance.LocalPlayer.IsCharacter)
+            {
+                //pulsing = true;
+                float pulseIntensity = emissionIntensity;
+                Color currentColor = ColorState.Colors[(int)this.tileState];
+                
+                int count = 6;
+                float time = pulseDuration / count;
+                Sequence seq = DOTween.Sequence();
+                seq.onComplete += () => { SetColor(tileState); };
+                var t = DOTween.To(() => pulseIntensity, x => pulseIntensity = x, emissionIntensity * .25f, time).SetLoops(count, LoopType.Yoyo);
+                t.onUpdate += () => { rend.material.SetColor("_EmissiveColor", currentColor * pulseIntensity); };
+                seq.Append(t);
+                seq.Play();
+            }
         }
     }
 

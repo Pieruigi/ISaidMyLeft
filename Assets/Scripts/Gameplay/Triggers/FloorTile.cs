@@ -6,6 +6,12 @@ using UnityEngine.Events;
 
 namespace ISML
 {
+    /// <summary>
+    /// White: you can walk, nothing happens
+    /// Red: you die if you walk in
+    /// Green: it's like a button, you must walk in to activate something
+    /// Yellow: walk but not forward ( you must walk backward or strafing, depending on the tile symbol... crouch can be enabled )
+    /// </summary>
     public enum TileState: byte { White, Red, Green, Yellow }
 
     public class FloorTile : NetworkBehaviour
