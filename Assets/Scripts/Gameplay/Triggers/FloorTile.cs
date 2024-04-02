@@ -11,7 +11,7 @@ namespace ISML
     public class FloorTile : NetworkBehaviour
     {
         public static UnityAction<FloorTile> OnTileEnter;
-        public UnityAction OnSpawned;
+        public static UnityAction<FloorTile> OnSpawned;
 
         [UnitySerializeField]
         [Networked]        
@@ -40,7 +40,7 @@ namespace ISML
 
             SetColors();
 
-            OnSpawned?.Invoke();
+            OnSpawned?.Invoke(this);
         }
 
         void DetectChanges()

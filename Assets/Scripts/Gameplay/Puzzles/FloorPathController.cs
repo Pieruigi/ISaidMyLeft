@@ -39,22 +39,27 @@ namespace ISML
 
         private void OnEnable()
         {
-            foreach (var tile in tiles)
-            {
-                tile.OnSpawned += HandleOnTileSpawned;
-            }
+            FloorTile.OnSpawned += HandleOnTileSpawned;
+            //foreach (var tile in tiles)
+            //{
+            //    tile.OnSpawned += HandleOnTileSpawned;
+            //}
         }
 
         private void OnDisable()
         {
-            foreach (var tile in tiles)
-            {
-                tile.OnSpawned -= HandleOnTileSpawned;
-            }
+            FloorTile.OnSpawned += HandleOnTileSpawned;
+
+            //foreach (var tile in tiles)
+            //{
+            //    tile.OnSpawned -= HandleOnTileSpawned;
+            //}
         }
 
-        private void HandleOnTileSpawned()
+        private void HandleOnTileSpawned(FloorTile tile)
         {
+            if (!tiles.Contains(tile))
+                return;
             spawnedCount++;
             if(spawnedCount == tiles.Count)
             {

@@ -83,6 +83,7 @@ namespace ISML
         //}
 
         ChangeDetector changeDetector;
+        bool isSpawned = false;
 
         private void Awake()
         {
@@ -106,10 +107,8 @@ namespace ISML
         // Update is called once per frame
         void Update()
         {
-            //if (Input.GetKeyDown(KeyCode.R))
-            //{
-            //    State = PlayerState.Dead;
-            //}
+            if (!isSpawned)
+                return;
 
             DetectChanges();
 
@@ -118,8 +117,21 @@ namespace ISML
 
         private void LateUpdate()
         {
-            
+            if (!isSpawned)
+                return;
+
             LateUpdateState();
+        }
+
+        public override void FixedUpdateNetwork()
+        {
+            if (!isSpawned)
+                return;
+
+            base.FixedUpdateNetwork();
+
+            FixedUpdateNetworkState();
+
         }
 
         private void OnEnable()
@@ -132,18 +144,13 @@ namespace ISML
             FloorTile.OnTileEnter -= HandleOnTileEnter;
         }
 
-        public override void FixedUpdateNetwork()
-        {
-           
-            base.FixedUpdateNetwork();
-
-            FixedUpdateNetworkState();
-
-        }
+        
 
         public override void Spawned()
         {
             base.Spawned();
+
+            isSpawned = true;
 
             // Move the scene camera under the player who has state authority
             if(HasStateAuthority)
@@ -190,7 +197,6 @@ namespace ISML
         async void Die()
         {
             Debug.Log("Player dead");
-            //await Task.Delay(System.TimeSpan.FromSeconds(1));
             await CameraFader.Instance.FadeOut(1f);
 
             
@@ -200,50 +206,7 @@ namespace ISML
 
         }
 
-        async void ResetPlayer()
-        {
-            //State = PlayerState.Test;
-            
-            //await Task.Delay(System.TimeSpan.FromSeconds(1f));
-            yaw = 0;
-            pitch = 0;
-            velocity = Vector3.zero;
-            moveInput = Vector2.zero;
-            aimInput = Vector2.zero;
-            crouchInput = false;
-            walkInput = false;
-            jumpInput = false;
-            jumping = false;
-            crouching = false;
-
-
-            //characterController.Move(transform.forward * 5);
-            var netTrans = GetComponent<NetworkTransform>();
-            if (HasStateAuthority)
-            {
-                netTrans.DisableSharedModeInterpolation = true;
-            }
-            
-            await Task.Delay(System.TimeSpan.FromSeconds(.25f));
-
-            // Fade out here
-
-
-            transform.position = LevelController.Instance.PlayerSpawnPoint.position;
-            transform.rotation = LevelController.Instance.PlayerSpawnPoint.rotation;
-
-            // Fade in here
-
-            await Task.Delay(System.TimeSpan.FromSeconds(.25f));
-
-            if(HasStateAuthority)
-            {
-                netTrans.DisableSharedModeInterpolation = false;
-                State = PlayerState.Normal;
-            }
-            
-        }
-
+      
         void GetControl()
         {
             playerCamera = Camera.main;
