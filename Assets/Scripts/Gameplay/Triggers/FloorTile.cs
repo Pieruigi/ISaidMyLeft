@@ -1,6 +1,7 @@
 using Fusion;
 using System.Collections;
 using System.Collections.Generic;
+using System.Threading.Tasks;
 using UnityEngine;
 using UnityEngine.Events;
 
@@ -10,9 +11,10 @@ namespace ISML
     /// White: you can walk, nothing happens
     /// Red: you die if you walk in
     /// Green: it's like a button, you must walk in to activate something
-    /// Yellow: walk but not forward ( you must walk backward or strafing, depending on the tile symbol... crouch can be enabled )
+    /// Orange: walk but with different rules ( you must walk backward or strafing, depending on the tile symbol... crouch can be enabled )
+    /// Yellow: just reset some other tiles
     /// </summary>
-    public enum TileState: byte { White, Red, Green, Yellow }
+    public enum TileState: byte { White, Red, Green, Yellow, Orange }
 
     public class FloorTile : NetworkBehaviour
     {
@@ -92,6 +94,19 @@ namespace ISML
         public void SetState(TileState state)
         {
             State = state;
+        }
+
+        [Rpc(sources: RpcSources.StateAuthority, RpcTargets.All)]
+        public async void PulseAndChangeStateRpc(TileState state, float delay)
+        {
+            ColorController[] cs = GetComponentsInChildren<ColorController>();
+            foreach (var c in cs)
+            {
+                Debug.Log($"Setting color state:{State}");
+                c.Pulse(delay);
+            }
+            await Task.Delay(System.TimeSpan.FromSeconds(delay));
+            SetState(state);
         }
     }
 

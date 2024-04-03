@@ -123,6 +123,13 @@ namespace ISML
         {
             if (Runner.IsSharedModeMasterClient)
             {
+#if UNITY_EDITOR
+                if(Runner.SessionInfo.PlayerCount == 1)
+                {
+                    await Task.Delay(System.TimeSpan.FromSeconds(1f));
+                    await Runner.LoadScene(SceneRef.FromIndex(1), LoadSceneMode.Single);
+                }
+#endif
                 Player currentCharacter = PlayerManager.Instance.Players.Where(p => p.IsCharacter).First();
                 Player nextCharacter = PlayerManager.Instance.Players.Where(p => !p.IsCharacter).First();
 

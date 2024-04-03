@@ -41,7 +41,7 @@ namespace ISML
             }
             if (Input.GetKeyDown(KeyCode.P))
             {
-                Pulse(3, TileState.Green);
+                Pulse(3f);
             }
 #endif
         }
@@ -72,19 +72,18 @@ namespace ISML
             else
             {
                 currentColor = targetColor;
-                rend.material.SetColor("_BaseColor", currentColor);
-                rend.material.SetColor("_EmissiveColor", currentColor * emissionIntensity);
+                rend.material.SetColor("_BaseColor", ColorState.Colors[(int)TileState.White]);
+                rend.material.SetColor("_EmissiveColor", ColorState.Colors[(int)TileState.White] * emissionIntensity);
                 //DynamicGI.SetEmissive(rend, ColorState.Colors[(int)TileState.White]);
                 //DynamicGI.UpdateEnvironment();
             }
         }
 
-       
 
-    
-        public void Pulse(float pulseDuration, TileState tileState)
+
+        public void Pulse(float pulseDuration)
         {
-            
+
             if (
 #if UNITY_EDITOR
               true ||
@@ -94,17 +93,42 @@ namespace ISML
                 //pulsing = true;
                 float pulseIntensity = emissionIntensity;
                 Color currentColor = ColorState.Colors[(int)this.tileState];
-                
+
                 int count = 6;
                 float time = pulseDuration / count;
                 Sequence seq = DOTween.Sequence();
-                seq.onComplete += () => { SetColor(tileState); };
+                //seq.onComplete += () => { SetColor(tileState); };
                 var t = DOTween.To(() => pulseIntensity, x => pulseIntensity = x, emissionIntensity * .25f, time).SetLoops(count, LoopType.Yoyo);
                 t.onUpdate += () => { rend.material.SetColor("_EmissiveColor", currentColor * pulseIntensity); };
                 seq.Append(t);
                 seq.Play();
             }
         }
+
+
+//        public void SetColor(TileState tileState, float pulseDuration)
+//        {
+            
+//            if (
+//#if UNITY_EDITOR
+//              true ||
+//#endif
+//          !PlayerManager.Instance.LocalPlayer.IsCharacter)
+//            {
+//                //pulsing = true;
+//                float pulseIntensity = emissionIntensity;
+//                Color currentColor = ColorState.Colors[(int)this.tileState];
+                
+//                int count = 6;
+//                float time = pulseDuration / count;
+//                Sequence seq = DOTween.Sequence();
+//                seq.onComplete += () => { SetColor(tileState); };
+//                var t = DOTween.To(() => pulseIntensity, x => pulseIntensity = x, emissionIntensity * .25f, time).SetLoops(count, LoopType.Yoyo);
+//                t.onUpdate += () => { rend.material.SetColor("_EmissiveColor", currentColor * pulseIntensity); };
+//                seq.Append(t);
+//                seq.Play();
+//            }
+//        }
     }
 
 }

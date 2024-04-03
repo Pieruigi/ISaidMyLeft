@@ -299,7 +299,7 @@ MonoBehaviour:
   runSpeed: 5
   walkSpeed: 2
   crouchSpeed: 1.5
-  jumpSpeed: 3
+  jumpSpeed: 4
   rotationSpeed: 360
   acceleration: 30
   deceleration: 50
